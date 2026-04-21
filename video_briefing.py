@@ -77,7 +77,7 @@ def _build_storyboard_prompts(goal: str, events: list[dict], narration: str) -> 
     return [
         # Frame 1: Mission start
         f"Cinematic dark UI dashboard, holographic AI agent network activating, "
-        f"glowing blue nodes connecting, mission: '{goal_short}', sci-fi aesthetic, 8k",
+        f"glowing blue nodes connecting, mission: '{goal_short}', sci-fi aesthetic, 8k, professional photography",
         
         # Frame 2: Agents working
         f"Multiple AI browser agents simultaneously navigating websites ({url_desc}), "
