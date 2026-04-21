@@ -30,6 +30,14 @@ DEFI_TASK_TEMPLATES = [
 
 DEFI_KEYWORDS = {"defi", "yield", "apy", "apr", "aave", "morpho", "compound", "usdc", "eth", "staking", "收益", "协议"}
 
+# Sales prospect research tasks — used when goal mentions a person/company
+SALES_TASK_TEMPLATES = [
+    {"id": "t1", "type": "research", "url": "https://www.google.com", "objective": "Research the prospect's company: recent news, funding, product launches, and key initiatives"},
+    {"id": "t2", "type": "research", "url": "https://www.google.com", "objective": "Research the prospect's role, background, and public professional activity"},
+    {"id": "t3", "type": "verify",   "url": "https://www.google.com", "objective": "Find competitor context and industry trends relevant to this prospect's company"},
+]
+SALES_KEYWORDS = {"vp", "cto", "ceo", "cmo", "head of", "director", "founder", "manager", "sales", "growth", "engineer", "product", ".com", ".io", ".ai"}
+
 
 class AVAOrchestrator:
     def __init__(self, headless: bool = True, on_update=None):
@@ -68,11 +76,19 @@ class AVAOrchestrator:
             # Use DeFi templates if goal is DeFi-related, else use LLM plan or fallback
             goal_lower = goal.lower()
             is_defi = any(kw in goal_lower for kw in DEFI_KEYWORDS)
+            is_sales = any(kw in goal_lower for kw in SALES_KEYWORDS)
             if not tasks or all("google" in t.get("url","") for t in tasks):
-                tasks = DEFI_TASK_TEMPLATES if is_defi else FALLBACK_TASKS
+                if is_defi:
+                    tasks = DEFI_TASK_TEMPLATES
+                elif is_sales:
+                    tasks = SALES_TASK_TEMPLATES
+                else:
+                    tasks = FALLBACK_TASKS
                 plan["summary"] = f"AVA workflow: {goal}"
         except Exception:
-            tasks = DEFI_TASK_TEMPLATES if any(kw in goal.lower() for kw in DEFI_KEYWORDS) else FALLBACK_TASKS
+            is_defi = any(kw in goal.lower() for kw in DEFI_KEYWORDS)
+            is_sales = any(kw in goal.lower() for kw in SALES_KEYWORDS)
+            tasks = DEFI_TASK_TEMPLATES if is_defi else (SALES_TASK_TEMPLATES if is_sales else FALLBACK_TASKS)
             plan = {"tasks": tasks, "summary": goal}
 
         self.on_update({"type": "plan", "tasks": tasks, "summary": plan.get("summary", "")})
