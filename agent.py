@@ -47,7 +47,7 @@ class SpecialistAgent:
         self.events: list[AgentEvent] = []
         self.extracted_data: dict = {}
 
-    async def run(self, max_cycles: int = 6) -> dict:
+    async def run(self, max_cycles: int = 5) -> dict:
         # ERC-8004 registration (simulated if no ETH on Taiko)
         identity_reg = await asyncio.to_thread(self.identity.register_on_chain)
 
