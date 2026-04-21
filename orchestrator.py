@@ -140,6 +140,10 @@ class AVAOrchestrator:
         narration = llm_client.synthesize_briefing(all_events, goal)
         self.on_update({"type": "narration", "text": narration})
 
+        # Generate personalized outreach email
+        outreach = llm_client.synthesize_outreach(narration, goal)
+        self.on_update({"type": "outreach", "subject": outreach.get("subject",""), "body": outreach.get("body","")})
+
         # Generate visual briefing
         self.on_update({"type": "status", "msg": "Generating visual storyboard..."})
         briefing = generate_briefing(
