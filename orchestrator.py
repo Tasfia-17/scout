@@ -70,7 +70,7 @@ class AVAOrchestrator:
             is_defi = any(kw in goal_lower for kw in DEFI_KEYWORDS)
             if not tasks or all("google" in t.get("url","") for t in tasks):
                 tasks = DEFI_TASK_TEMPLATES if is_defi else FALLBACK_TASKS
-                plan["summary"] = f"{'DeFi research' if is_defi else 'Workflow automation'}: {goal}"
+                plan["summary"] = f"AVA workflow: {goal}"
         except Exception:
             tasks = DEFI_TASK_TEMPLATES if any(kw in goal.lower() for kw in DEFI_KEYWORDS) else FALLBACK_TASKS
             plan = {"tasks": tasks, "summary": goal}
