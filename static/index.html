@@ -463,6 +463,7 @@ function handleMessage(msg) {
   else if (t === 'identities')       { showIdentities(msg.identities); notify('trust'); }
   else if (t === 'payments')         { showPayments(msg.payments); notify('network'); }
   else if (t === 'narration')        { showBriefing(msg.text); notify('briefing'); }
+  else if (t === 'outreach')         { showOutreach(msg.subject, msg.body); notify('briefing'); }
   else if (t === 'audio')            { loadAudio(msg.b64); notify('briefing'); }
   else if (t === 'storyboard_frame') { addStoryboardFrame(msg.b64, msg.index, msg.prompt); notify('briefing'); }
   else if (t === 'screenshot')       { addScreenshot(msg.b64, msg.index); const k = Object.keys(agents)[msg.index]; if(k) updateAgentScreenshot(k, msg.b64); }
@@ -591,10 +592,9 @@ function showTransaction(bestYield, tx) {
 function showBriefing(text) {
   document.getElementById('briefingSection').style.display = 'block';
   document.getElementById('narrationText').textContent = text;
-  // Generate outreach draft from briefing
-  const lines = text.split('. ');
-  const subject = `Quick thought on ${lines[0].split(' ').slice(-3).join(' ')}`;
-  const body = `Hi,\n\n${text}\n\nWould love to connect and explore how we can help.\n\nBest,\nScout`;
+}
+
+function showOutreach(subject, body) {
   document.getElementById('outreachSection').style.display = 'block';
   document.getElementById('outreachSubject').textContent = `Subject: ${subject}`;
   document.getElementById('outreachBody').textContent = body;
