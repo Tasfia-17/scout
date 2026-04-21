@@ -145,12 +145,14 @@ class SpecialistAgent:
         """Stop when we have real data extracted, not just cycle count."""
         if len(self.action_history) < 2:
             return False
-        # Check if we've extracted meaningful content (APY data, numbers, protocol names)
         all_text = " ".join(
             d.get("body_snippet", "") for d in self.extracted_data.values()
         ).lower()
-        has_data = any(kw in all_text for kw in ["apy", "apr", "%", "supply", "borrow", "yield", "rate", "usdc"])
-        return has_data or len(self.action_history) >= 4
+        # DeFi signals
+        has_defi = any(kw in all_text for kw in ["apy", "apr", "%", "supply", "borrow", "yield", "rate", "usdc"])
+        # Sales research signals
+        has_sales = any(kw in all_text for kw in ["founded", "employees", "revenue", "funding", "series", "raised", "ceo", "product", "customers", "million"])
+        return has_defi or has_sales or len(self.action_history) >= 4
 
     def _emit(self, cycle, url, action, result, screenshot_b64, vision_check, sig, payment, t0):
         event = AgentEvent(
