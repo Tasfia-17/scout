@@ -105,7 +105,7 @@ def validate_screenshot(image_b64: str, expected_action: str) -> dict:
     resp = vision(
         f"This is a browser screenshot. The agent was supposed to: {expected_action}\n"
         "Describe what you see in 1 sentence. Did the action succeed? Reply: {{\"visible\": \"...\", \"success\": true/false}}",
-        image_b64, model="qwen3-vl-8b", max_tokens=100
+        image_b64, model="qwen3-vl-8b", max_tokens=80
     )
     import json, re
     match = re.search(r'\{.*\}', resp.content, re.DOTALL)
