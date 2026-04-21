@@ -173,3 +173,14 @@ Built on top of:
 - adcock-agent by neelsomani - GAP pipeline and browser automation patterns
 - clicky by farzaa - screen capture and voice pipeline patterns
 - ava-trading-esp32 - ESP32 voice agent architecture
+
+
+## Health check
+
+Once running, verify the server is up:
+
+```bash
+curl http://localhost:8000/health
+```
+
+Expected response: {"status": "ok"}
