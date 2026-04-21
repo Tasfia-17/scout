@@ -1,6 +1,6 @@
 .env
 __pycache__/
 *.pyc
-logs/
-/tmp/ava_output/
-*.log
+*.pyo
+.DS_Store
+node_modules/
