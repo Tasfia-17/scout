@@ -658,7 +658,7 @@ function toggleVoice() {
   btn.textContent = '🔴 Listening...';
   r.start();
   r.onresult = e => { document.getElementById('goalInput').value = e.results[0][0].transcript; };
-  r.onend = () => { btn.className = 'btn btn-voice'; btn.textContent = '🎤 Voice'; };
+  r.onend = () => { btn.className = 'btn btn-voice'; btn.textContent = '🎤 Voice Input'; };
 }
 
 // Example goals on double-click
