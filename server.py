@@ -12,11 +12,12 @@ load_dotenv()
 
 from orchestrator import AVAOrchestrator
 
-app = FastAPI(title="AVA — AI DeFi Co-Pilot")
+app = FastAPI(title="SCOUT — AI Sales Intelligence")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 connections: list[WebSocket] = []
 last_result: dict = {}
+autonomous_task = None  # background watcher task
 
 
 async def broadcast(msg: dict):
@@ -34,9 +35,10 @@ async def broadcast(msg: dict):
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     connections.append(ws)
-    # Send last result if available
     if last_result:
         await ws.send_json({"type": "history", "data": last_result})
+    # Send autonomous mode status
+    await ws.send_json({"type": "auto_status", "active": autonomous_task is not None and not autonomous_task.done()})
     try:
         while True:
             data = await ws.receive_json()
@@ -46,6 +48,12 @@ async def websocket_endpoint(ws: WebSocket):
                     await ws.send_json({"type": "error", "msg": "Empty goal"})
                     continue
                 asyncio.create_task(_run_goal(goal))
+            elif data.get("type") == "auto_start":
+                await _start_autonomous()
+            elif data.get("type") == "auto_stop":
+                await _stop_autonomous()
+            elif data.get("type") == "queue_add":
+                await _add_to_queue(data.get("prospect", ""))
     except WebSocketDisconnect:
         connections.remove(ws)
 
@@ -84,6 +92,50 @@ async def index():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+async def _start_autonomous():
+    global autonomous_task
+    from watcher import watch_queue
+    if autonomous_task and not autonomous_task.done():
+        return
+    await broadcast({"type": "auto_status", "active": True})
+    await broadcast({"type": "status", "msg": "Autonomous mode active — watching prospects.csv"})
+
+    async def on_prospect(goal: str):
+        await broadcast({"type": "status", "msg": f"[AUTO] New prospect: {goal}"})
+        await _run_goal(goal)
+
+    autonomous_task = asyncio.create_task(watch_queue(on_prospect))
+
+
+async def _stop_autonomous():
+    global autonomous_task
+    if autonomous_task:
+        autonomous_task.cancel()
+        autonomous_task = None
+    await broadcast({"type": "auto_status", "active": False})
+    await broadcast({"type": "status", "msg": "Autonomous mode stopped"})
+
+
+async def _add_to_queue(prospect: str):
+    """Add a prospect to the CSV queue from the dashboard."""
+    if not prospect.strip():
+        return
+    import csv
+    from pathlib import Path
+    queue_file = Path("prospects.csv")
+    rows = []
+    if queue_file.exists():
+        with open(queue_file, newline="") as f:
+            rows = list(csv.DictReader(f))
+    new_id = str(max((int(r.get("id",0)) for r in rows), default=0) + 1)
+    rows.append({"id": new_id, "prospect": prospect, "status": "pending"})
+    with open(queue_file, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["id","prospect","status"])
+        w.writeheader()
+        w.writerows(rows)
+    await broadcast({"type": "status", "msg": f"Added to queue: {prospect}"})
 
 
 @app.post("/demo")
