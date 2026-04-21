@@ -196,3 +196,18 @@ Each agent action generates a real EIP-3009 USDC payment signature. The flow:
 4. Receipt is logged and shown on the dashboard
 
 The payment is gasless for the sender. The x402 facilitator at x402.org handles settlement.
+
+
+## Running in production
+
+For a persistent server, use:
+
+```bash
+nohup python3 server.py > ava.log 2>&1 &
+```
+
+Or with uvicorn directly:
+
+```bash
+uvicorn server:app --host 0.0.0.0 --port 8000 --workers 1
+```
