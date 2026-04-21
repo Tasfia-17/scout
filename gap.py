@@ -47,7 +47,7 @@ Generate a GAP to progress toward the goal."""
 
     resp = llm_client.chat(
         [{"role": "system", "content": GAP_SYSTEM}, {"role": "user", "content": prompt}],
-        model="qwen3-8b", max_tokens=600   # fast model for browser actions
+        model="qwen3-8b", max_tokens=500   # fast model for browser actions
     )
     
     raw = resp.content or ""
