@@ -22,7 +22,7 @@ class A2ABus:
 
     def __init__(self):
         self._queues: dict[str, asyncio.Queue] = {}
-        self._history: list[A2AMessage] = []
+        self._history: list[A2AMessage] = []  # capped at 100
 
     def register(self, agent_id: str):
         if agent_id not in self._queues:
