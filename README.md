@@ -1,8 +1,8 @@
 # SCOUT
 
-## Verifiable Multi-Agent Sales Intelligence
+## Verifiable Multi-Agent Intelligence
 
-SCOUT is a B2B sales intelligence system that deploys a coordinated swarm of autonomous AI agents to research any prospect in under 90 seconds. It delivers a spoken audio briefing, a personalized outreach email, and a visual storyboard of findings. Every agent action is cryptographically signed on-chain using the ERC-8004 Trustless Agents standard, and every API call generates a real micropayment receipt via the x402 protocol.
+SCOUT deploys a coordinated swarm of autonomous AI agents to research any goal in under 90 seconds. Give it a sales prospect, a DeFi yield opportunity, a competitor, or any research target — it decomposes the task into parallel sub-tasks, runs specialist agents simultaneously, and returns a spoken audio briefing, a personalized output, and a visual storyboard of findings. Every agent action is cryptographically signed on-chain using the ERC-8004 Trustless Agents standard, and every API call generates a real micropayment receipt via the x402 protocol.
 
 Built for the Loops House Shanghai Residency 2026.
 
@@ -30,16 +30,22 @@ Built for the Loops House Shanghai Residency 2026.
 
 ## 1. The Problem
 
-Sales representatives spend two to three hours per day on prospect research before a single outreach message is sent. They manually stitch together information from LinkedIn, company websites, news alerts, CRM notes, and competitor data. The result is either shallow personalization that prospects immediately recognize as templated, or hours of lost productivity before a single email is written.
+Any time an AI agent needs to research something on the web, act on it, and prove what it did — there is no good solution. The tools that exist solve fragments in isolation.
+
+For sales teams specifically: representatives spend two to three hours per day on prospect research before a single outreach message is sent. They manually stitch together information from company websites, news alerts, CRM notes, and competitor data. The result is either shallow personalization or hours of lost productivity.
+
+For DeFi and financial research: analysts manually compare yield protocols, check on-chain data, and build transaction previews by hand. There is no pipeline from research finding to executable transaction.
+
+The broader problem: when an AI agent acts on your behalf, there is no cryptographic proof of what it found, when it found it, or that the output has not been tampered with. There is no audit trail.
 
 The existing tool landscape solves fragments of this problem in isolation:
 
-- **Clay ($149-800/month)** enriches data fields but requires a specialist operator and a steep learning curve. Users describe it as a tool few will ever master.
+- **Clay ($149-800/month)** enriches data fields but requires a specialist operator and a steep learning curve.
 - **Apollo and ZoomInfo** provide contact databases with no intelligence layer. They tell you who to contact, not what to say.
-- **11x and Artisan** send outbound emails at scale but personalization is template-based. The first line references a data field, not a real insight.
-- **HeyGen and Tavus** generate personalized video and audio but require the user to research the prospect and write the script manually.
+- **11x and Artisan** send outbound emails at scale but personalization is template-based.
+- **HeyGen and Tavus** generate personalized video and audio but require the user to research and write the script manually.
 
-No tool closes the full loop: research the prospect deeply, understand their context, generate genuinely personalized multimodal output, verify every step cryptographically, and deliver everything in under 90 seconds.
+No tool closes the full loop: decompose any research goal, run specialist agents in parallel, generate genuinely personalized multimodal output, verify every step cryptographically, and deliver everything in under 90 seconds.
 
 SCOUT closes that loop.
 
@@ -47,25 +53,25 @@ SCOUT closes that loop.
 
 ## 2. What SCOUT Does
 
-**Input:** a prospect name and company URL, typed or spoken in any language.
+**Input:** any research goal — a sales prospect, a DeFi yield opportunity, a competitor, a company — typed or spoken in any language.
 
-**Process:** SCOUT decomposes the research into parallel sub-tasks, assigns each to a specialist agent with a specific target URL and objective, runs all agents simultaneously, and synthesizes findings into a verified intelligence package.
+**Process:** SCOUT decomposes the goal into parallel sub-tasks, assigns each to a specialist agent with a specific target URL and objective, runs all agents simultaneously, and synthesizes findings into a verified intelligence package.
 
 **Output delivered in under 90 seconds:**
 
 ### Intelligence Brief
-A structured summary of key insights about the prospect and their company, sourced from live browser research across their website, recent news, and competitor landscape.
+A structured executive summary sourced from live browser research across multiple URLs. Specific facts, specific signals, specific timing — not a template.
 
-### Personalized Outreach Email
-A draft email with a specific first line that references a real finding from the research. Not a template. Generated from actual agent findings.
+### Personalized Outreach or Action Output
+For sales goals: a draft email with a first line referencing a real finding. For DeFi goals: an unsigned transaction ready to sign. Generated from actual agent findings, not data field merges.
 
 ### Audio Briefing
-A 60-second spoken summary generated by Orpheus TTS. Sales reps listen before a call. Delivered with a custom audio player in the dashboard.
+A 60-second spoken summary generated by Orpheus TTS. Listen before a call or meeting. Delivered with a custom audio player in the dashboard.
 
 ### Visual Storyboard
-Four cinematic images generated by Flux Schnell that visualize the research narrative. Generated from the specific findings of each run, not stock imagery.
+Four cinematic images generated by Flux Schnell that visualize the research narrative. Generated from the specific findings of each run.
 
-### Verified Receipt
+### Verified Audit Trail
 Every agent action is cryptographically signed with an ERC-8004 on-chain identity. Every API call generates a real x402 micropayment receipt. The full audit trail is visible in the Trust and Network tabs.
 
 ---
@@ -76,7 +82,7 @@ Every agent action is cryptographically signed with an ERC-8004 on-chain identit
 Text input or voice via the browser Web Speech API. Multilingual support including Chinese for the Shanghai market.
 
 ### Orchestrator
-Receives the prospect goal and decomposes it into two to three parallel research sub-tasks using qwen3-8b. Detects whether the goal is a sales prospect, a DeFi research task, or a general workflow, and selects the appropriate task templates. Coordinates all agent results and synthesizes the final intelligence brief and outreach email.
+Receives any research goal and decomposes it into two to three parallel sub-tasks using qwen3-8b. Detects whether the goal is a sales prospect, a DeFi research task, or a general workflow, and selects the appropriate task templates. Coordinates all agent results and synthesizes the final intelligence brief and output.
 
 ### Specialist Agents
 Each agent runs independently and in parallel. The lifecycle of a single agent run:
@@ -148,7 +154,7 @@ SCOUT produces four distinct output types from a single research run:
 The dashboard is a four-page single-page application with a glassmorphism design, animated mesh gradient background, and inline SVG icons throughout.
 
 ### Scout Tab
-The main research interface. Prospect input with voice support, example prospect chips, and a live agent grid showing each agent's current URL, action, and browser screenshot with an animated click pointer.
+The main research interface. Goal input with voice support, and a live agent grid showing each agent's current URL, action, and browser screenshot with an animated click pointer.
 
 ### Briefing Tab
 The intelligence brief, personalized outreach email draft, custom audio player, visual storyboard, and agent screenshots. A notification dot appears on this tab when new briefing data arrives while viewing another tab.
@@ -303,7 +309,7 @@ SCOUT replaces a stack of tools that sales teams currently pay for separately:
 
 **SCOUT pricing: $299/seat/month**
 
-- **Target buyer:** SDR teams, account executives, and founders doing outbound sales
+- **Target buyer:** SDR teams, account executives, founders doing outbound sales, and DeFi analysts
 - **Sales motion:** Self-serve, no enterprise procurement required
 - **Time to value:** Under 5 minutes from signup to first research run
 
