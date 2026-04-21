@@ -2,7 +2,7 @@
 LLM client for ionrouter — OpenAI-compatible.
 Handles text, vision, and TTS.
 """
-import os, time, requests, base64
+import os, time, requests, base64, json
 from dataclasses import dataclass
 from typing import Optional
 
@@ -116,3 +116,26 @@ def validate_screenshot(image_b64: str, expected_action: str) -> dict:
         except Exception:
             pass
     return {"visible": resp.content, "success": True}
+
+
+def synthesize_outreach(briefing: str, prospect: str) -> dict:
+    """Generate a personalized outreach email from the intelligence brief."""
+    resp = chat([{
+        "role": "user",
+        "content": (
+            f"Prospect: {prospect}\n\nIntelligence brief:\n{briefing}\n\n"
+            f"Write a short, personalized B2B outreach email. "
+            f"First line must reference something specific from the brief. "
+            f"Keep it under 100 words. Professional but human tone.\n"
+            f"Reply ONLY with JSON: {{\"subject\": \"...\", \"body\": \"...\"}}"
+        )
+    }], model="qwen3-8b", max_tokens=300)
+    import re
+    content = re.sub(r'<think>.*?</think>', '', resp.content or "", flags=re.DOTALL)
+    match = re.search(r'\{.*\}', content, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except Exception:
+            pass
+    return {"subject": f"Quick thought on {prospect.split(',')[0]}", "body": briefing[:200]}
