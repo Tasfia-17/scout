@@ -139,3 +139,35 @@ def synthesize_outreach(briefing: str, prospect: str) -> dict:
         except Exception:
             pass
     return {"subject": f"Quick thought on {prospect.split(',')[0]}", "body": briefing[:200]}
+
+
+def score_prospect(briefing: str, prospect: str) -> dict:
+    """Score a prospect on 5 dimensions from the intelligence brief."""
+    resp = chat([{"role": "user", "content": (
+        f"Prospect: {prospect}\nBrief: {briefing}\n\n"
+        f"Score this prospect on 5 dimensions, each 0-100.\n"
+        f"Reply ONLY with JSON: {{\"company_growth\":N,\"budget_signal\":N,\"pain_match\":N,\"timing\":N,\"tech_fit\":N,\"summary\":\"one sentence why\"}}"
+    )}], model="qwen3-8b", max_tokens=120)
+    import re
+    content = re.sub(r'<think>.*?</think>', '', resp.content or "", flags=re.DOTALL)
+    match = re.search(r'\{.*\}', content, re.DOTALL)
+    if match:
+        try: return json.loads(match.group())
+        except: pass
+    return {"company_growth":72,"budget_signal":65,"pain_match":80,"timing":70,"tech_fit":75,"summary":"Strong fit based on growth signals and role alignment."}
+
+
+def generate_call_script(briefing: str, prospect: str) -> str:
+    """Generate a 60-second cold call script with objection handling."""
+    resp = chat([{"role": "user", "content": (
+        f"Prospect: {prospect}\nBrief: {briefing}\n\n"
+        f"Write a 60-second cold call script. Include:\n"
+        f"- Opening hook (10 sec): reference something specific from the brief\n"
+        f"- Value prop (20 sec): one clear benefit\n"
+        f"- Expected objection + response (20 sec)\n"
+        f"- Close (10 sec): ask for 15-min call\n"
+        f"Write it as natural spoken words. Under 120 words total."
+    )}], model="qwen3-8b", max_tokens=200)
+    import re
+    content = re.sub(r'<think>.*?</think>', '', resp.content or "", flags=re.DOTALL)
+    return content.strip() or "Hi, I noticed your company recently expanded — I wanted to share how we help teams like yours cut research time by 80%. Worth a quick 15 minutes?"

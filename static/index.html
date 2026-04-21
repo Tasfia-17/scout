@@ -253,6 +253,20 @@ nav{display:flex;gap:4px;margin-left:20px}
 .stat-pill{flex:1;min-width:90px;background:rgba(255,255,255,0.45);border:1px solid var(--border2);border-radius:12px;padding:10px 14px;text-align:center}
 .stat-num{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-1px;font-variant-numeric:tabular-nums}
 .stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px}
+
+/* Score card */
+.score-card{background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(236,72,153,0.04));border:1.5px solid rgba(108,99,255,0.2);border-radius:var(--radius);padding:20px;backdrop-filter:blur(18px)}
+.score-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.score-label{font-size:11px;font-weight:600;color:var(--text2);width:130px;flex-shrink:0}
+.score-bar-wrap{flex:1;height:8px;background:rgba(108,99,255,0.1);border-radius:4px;overflow:hidden}
+.score-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6c63ff,#a78bfa);width:0%;transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1)}
+.score-val{font-size:12px;font-weight:700;color:var(--accent);width:32px;text-align:right;flex-shrink:0}
+.score-total{font-size:28px;font-weight:800;color:var(--accent);letter-spacing:-1.5px}
+.score-summary{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.5;font-style:italic}
+
+/* Call script card */
+.call-card{background:linear-gradient(135deg,rgba(34,197,94,0.07),rgba(96,165,250,0.04));border:1.5px solid rgba(34,197,94,0.2);border-radius:var(--radius);padding:20px;backdrop-filter:blur(18px)}
+.call-script-text{font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -427,6 +441,41 @@ nav{display:flex;gap:4px;margin-left:20px}
         <div class="outreach-subject" id="outreachSubject"></div>
         <div class="outreach-body" id="outreachBody"></div>
       </div>
+
+      <div id="scoreSection" style="display:none" class="score-card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Prospect Fit Score
+        </div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:16px">
+          <div class="score-total" id="scoreTotalNum">0</div>
+          <div style="font-size:13px;color:var(--text3)">/100</div>
+        </div>
+        <div class="score-row"><span class="score-label">Company Growth</span><div class="score-bar-wrap"><div class="score-bar" id="bar-growth"></div></div><span class="score-val" id="val-growth">0</span></div>
+        <div class="score-row"><span class="score-label">Budget Signal</span><div class="score-bar-wrap"><div class="score-bar" id="bar-budget"></div></div><span class="score-val" id="val-budget">0</span></div>
+        <div class="score-row"><span class="score-label">Pain Match</span><div class="score-bar-wrap"><div class="score-bar" id="bar-pain"></div></div><span class="score-val" id="val-pain">0</span></div>
+        <div class="score-row"><span class="score-label">Timing</span><div class="score-bar-wrap"><div class="score-bar" id="bar-timing"></div></div><span class="score-val" id="val-timing">0</span></div>
+        <div class="score-row"><span class="score-label">Tech Fit</span><div class="score-bar-wrap"><div class="score-bar" id="bar-tech"></div></div><span class="score-val" id="val-tech">0</span></div>
+        <div class="score-summary" id="scoreSummary"></div>
+      </div>
+
+      <div id="callSection" style="display:none" class="call-card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Cold Call Script — 60 seconds
+        </div>
+        <div class="call-script-text" id="callScriptText"></div>
+        <div class="audio-player" id="callAudioUI" style="display:none">
+          <button class="audio-play-btn" id="callPlayBtn" onclick="toggleCallAudio()">
+            <svg id="callPlayIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <div class="audio-progress-wrap">
+            <input type="range" class="audio-progress" id="callProgress" value="0" min="0" max="100" step="0.1" oninput="seekCallAudio(this.value)">
+            <span class="audio-time" id="callTime">0:00 / 0:00</span>
+          </div>
+        </div>
+        <audio id="callAudioEl" style="display:none"></audio>
+      </div>
     </div>
 
     <div id="storyboardSection" style="display:none" class="page-grid-full">
@@ -511,6 +560,9 @@ function handleMessage(msg) {
   else if (t === 'payments')         { showPayments(msg.payments); notify('network'); }
   else if (t === 'narration')        { showBriefing(msg.text); notify('briefing'); }
   else if (t === 'outreach')         { showOutreach(msg.subject, msg.body); notify('briefing'); }
+  else if (t === 'score')            { showScore(msg.score); notify('briefing'); }
+  else if (t === 'call_script')      { showCallScript(msg.text); notify('briefing'); }
+  else if (t === 'call_audio')       { loadCallAudio(msg.b64); notify('briefing'); }
   else if (t === 'audio')            { loadAudio(msg.b64); notify('briefing'); }
   else if (t === 'storyboard_frame') { addStoryboardFrame(msg.b64, msg.index, msg.prompt); notify('briefing'); }
   else if (t === 'screenshot')       { addScreenshot(msg.b64, msg.index); const k = Object.keys(agents)[msg.index]; if(k) updateAgentScreenshot(k, msg.b64); }
@@ -789,6 +841,69 @@ function showOutreach(subject, body) {
   document.getElementById('outreachBody').textContent = body;
 }
 
+function showScore(score) {
+  document.getElementById('scoreSection').style.display = 'block';
+  const dims = [
+    ['growth', score.company_growth],
+    ['budget', score.budget_signal],
+    ['pain',   score.pain_match],
+    ['timing', score.timing],
+    ['tech',   score.tech_fit],
+  ];
+  const avg = Math.round(dims.reduce((s,[,v])=>s+v,0)/dims.length);
+  // Animate total
+  let n=0; const iv=setInterval(()=>{
+    n=Math.min(n+2,avg);
+    document.getElementById('scoreTotalNum').textContent=n;
+    if(n>=avg) clearInterval(iv);
+  },20);
+  // Animate bars with stagger
+  dims.forEach(([key,val],i) => {
+    setTimeout(() => {
+      document.getElementById(`bar-${key}`).style.width = val+'%';
+      document.getElementById(`val-${key}`).textContent = val;
+    }, i*120);
+  });
+  document.getElementById('scoreSummary').textContent = score.summary || '';
+}
+
+function showCallScript(text) {
+  document.getElementById('callSection').style.display = 'block';
+  typeText(document.getElementById('callScriptText'), text, 12);
+}
+
+function loadCallAudio(b64) {
+  const el = document.getElementById('callAudioEl');
+  el.src = `data:audio/mp3;base64,${b64}`;
+  el.onloadedmetadata = () => updateCallTime();
+  el.ontimeupdate = () => {
+    const pct = el.duration ? (el.currentTime/el.duration*100) : 0;
+    const p = document.getElementById('callProgress');
+    p.value=pct; p.style.setProperty('--pct',pct+'%');
+    updateCallTime();
+  };
+  el.onended = () => { document.getElementById('callPlayIcon').innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>'; };
+  document.getElementById('callAudioUI').style.display = 'flex';
+}
+
+function toggleCallAudio() {
+  const el = document.getElementById('callAudioEl');
+  const icon = document.getElementById('callPlayIcon');
+  if (el.paused) { el.play(); icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'; }
+  else { el.pause(); icon.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>'; }
+}
+
+function seekCallAudio(val) {
+  const el = document.getElementById('callAudioEl');
+  if (el.duration) el.currentTime = val/100*el.duration;
+}
+
+function updateCallTime() {
+  const el = document.getElementById('callAudioEl');
+  const fmt = s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  document.getElementById('callTime').textContent = `${fmt(el.currentTime||0)} / ${fmt(el.duration||0)}`;
+}
+
 function loadAudio(b64) {
   const el = document.getElementById('audioEl');
   el.src = `data:audio/mp3;base64,${b64}`;
@@ -932,7 +1047,7 @@ function setRunning(r) {
 
 function clearAll() {
   clearAgents();
-  ['txSection','briefingSection','outreachSection','storyboardSection','screenshotsSection','planPanel'].forEach(id => {
+  ['txSection','briefingSection','outreachSection','scoreSection','callSection','storyboardSection','screenshotsSection','planPanel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });

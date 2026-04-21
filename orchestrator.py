@@ -144,6 +144,21 @@ class AVAOrchestrator:
         outreach = llm_client.synthesize_outreach(narration, goal)
         self.on_update({"type": "outreach", "subject": outreach.get("subject",""), "body": outreach.get("body","")})
 
+        # Prospect score card
+        score = llm_client.score_prospect(narration, goal)
+        self.on_update({"type": "score", "score": score})
+
+        # Cold call script + audio
+        self.on_update({"type": "status", "msg": "Generating cold call script..."})
+        call_script = llm_client.generate_call_script(narration, goal)
+        self.on_update({"type": "call_script", "text": call_script})
+        try:
+            call_audio = llm_client.tts(call_script)
+            import base64
+            self.on_update({"type": "call_audio", "b64": base64.b64encode(call_audio).decode()})
+        except Exception:
+            pass
+
         # Generate visual briefing
         self.on_update({"type": "status", "msg": "Generating visual storyboard..."})
         briefing = generate_briefing(
