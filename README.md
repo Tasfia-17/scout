@@ -184,3 +184,15 @@ curl http://localhost:8000/health
 ```
 
 Expected response: {"status": "ok"}
+
+
+## x402 payment flow
+
+Each agent action generates a real EIP-3009 USDC payment signature. The flow:
+
+1. Agent calls build_payment_payload() with the target URL
+2. EIP-3009 transferWithAuthorization is signed with the agent wallet
+3. The signed payload is formatted as a PAYMENT-SIGNATURE header
+4. Receipt is logged and shown on the dashboard
+
+The payment is gasless for the sender. The x402 facilitator at x402.org handles settlement.
