@@ -225,6 +225,34 @@ nav{display:flex;gap:4px;margin-left:20px}
 /* Page grid for briefing/trust/network */
 .page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;width:100%}
 .page-grid-full{width:100%}
+
+/* Agent network graph */
+.network-graph-wrap{width:100%;background:rgba(255,255,255,0.35);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm)}
+.network-graph-wrap h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:10px}
+#agentGraph{width:100%;height:160px}
+#agentGraph svg{width:100%;height:100%}
+.graph-node circle{transition:r 0.4s,fill 0.4s}
+.graph-node.active circle{filter:drop-shadow(0 0 8px rgba(108,99,255,0.7))}
+.graph-node text{font-size:10px;font-family:'Inter',sans-serif;fill:var(--text2);font-weight:600}
+.graph-edge{stroke:rgba(108,99,255,0.18);stroke-width:1.5;fill:none;transition:stroke 0.3s}
+.graph-edge.firing{stroke:rgba(108,99,255,0.8);stroke-dasharray:5 3;animation:dash 0.8s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-16}}
+
+/* Typing cursor */
+.typing-cursor{display:inline-block;width:2px;height:1em;background:var(--accent);margin-left:2px;animation:blink 0.8s infinite;vertical-align:text-bottom}
+
+/* Hash reveal */
+.hash-reveal{font-family:monospace;font-size:11px;color:var(--text3)}
+
+/* Cost tick */
+@keyframes tick-up{0%{transform:translateY(5px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.cost-tick{animation:tick-up 0.25s ease-out}
+
+/* Stats row */
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.stat-pill{flex:1;min-width:90px;background:rgba(255,255,255,0.45);border:1px solid var(--border2);border-radius:12px;padding:10px 14px;text-align:center}
+.stat-num{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -333,6 +361,21 @@ nav{display:flex;gap:4px;margin-left:20px}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           Active Agents
         </div>
+
+        <!-- Live stats -->
+        <div class="stat-row" id="statRow" style="display:none">
+          <div class="stat-pill"><div class="stat-num" id="statAgents">0</div><div class="stat-label">Agents</div></div>
+          <div class="stat-pill"><div class="stat-num" id="statActions">0</div><div class="stat-label">Actions</div></div>
+          <div class="stat-pill"><div class="stat-num" id="statMessages">0</div><div class="stat-label">A2A Msgs</div></div>
+          <div class="stat-pill"><div class="stat-num" id="statSigs">0</div><div class="stat-label">Signatures</div></div>
+        </div>
+
+        <!-- Agent network graph -->
+        <div class="network-graph-wrap" id="graphWrap" style="display:none;margin-top:12px;margin-bottom:12px">
+          <h4>Agent Network — Live A2A Communication</h4>
+          <div id="agentGraph"></div>
+        </div>
+
         <div class="agent-grid" id="agentGrid">
           <div class="empty-state">
             <div class="empty-dots"><span></span><span></span><span></span></div>
@@ -496,6 +539,129 @@ function setExample(i) {
   document.getElementById('goalInput').value = EXAMPLES[i];
 }
 
+
+// ── Stats counters ──────────────────────────────────────────────
+let statCounts = {agents:0, actions:0, messages:0, sigs:0};
+function incStat(key) {
+  statCounts[key]++;
+  const map = {agents:'statAgents',actions:'statActions',messages:'statMessages',sigs:'statSigs'};
+  const el = document.getElementById(map[key]);
+  if (el) { el.textContent = statCounts[key]; el.classList.remove('cost-tick'); void el.offsetWidth; el.classList.add('cost-tick'); }
+}
+
+// ── Agent network graph ─────────────────────────────────────────
+const graphNodes = {};
+const graphEdges = [];
+
+function initGraph(tasks) {
+  document.getElementById('graphWrap').style.display = 'block';
+  document.getElementById('statRow').style.display = 'flex';
+  const wrap = document.getElementById('agentGraph');
+  wrap.innerHTML = '';
+  const W = wrap.offsetWidth || 420, H = 160;
+  const cx = W/2, cy = H/2;
+  const r = Math.min(cx,cy) - 36;
+  const angleStep = (2*Math.PI) / tasks.length;
+  graphNodes['orchestrator'] = {x:cx, y:cy, label:'SCOUT', active:false};
+  tasks.forEach((t,i) => {
+    const angle = angleStep*i - Math.PI/2;
+    graphNodes[`agent_${t.id}`] = {x:cx+r*Math.cos(angle), y:cy+r*Math.sin(angle), label:`A${i+1}`, active:false};
+    graphEdges.push({from:'orchestrator', to:`agent_${t.id}`, id:`e_orch_${t.id}`});
+  });
+  for (let i=0;i<tasks.length;i++) for (let j=i+1;j<tasks.length;j++)
+    graphEdges.push({from:`agent_${tasks[i].id}`, to:`agent_${tasks[j].id}`, id:`e_${i}_${j}`});
+  renderGraph(W, H);
+}
+
+function renderGraph(W, H) {
+  const wrap = document.getElementById('agentGraph');
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.style.cssText = 'width:100%;height:100%';
+  graphEdges.forEach(e => {
+    const a=graphNodes[e.from], b=graphNodes[e.to]; if(!a||!b) return;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',a.x); line.setAttribute('y1',a.y);
+    line.setAttribute('x2',b.x); line.setAttribute('y2',b.y);
+    line.setAttribute('class','graph-edge'); line.id=`svg_${e.id}`;
+    svg.appendChild(line);
+  });
+  Object.entries(graphNodes).forEach(([id,n]) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','graph-node'); g.id=`gnode_${id}`;
+    const isOrch = id==='orchestrator';
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',n.x); c.setAttribute('cy',n.y); c.setAttribute('r',isOrch?20:14);
+    c.setAttribute('fill',isOrch?'rgba(108,99,255,0.18)':'rgba(255,255,255,0.55)');
+    c.setAttribute('stroke',isOrch?'#6c63ff':'rgba(108,99,255,0.35)'); c.setAttribute('stroke-width','1.5');
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',n.x); t.setAttribute('y',n.y+4); t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size',isOrch?'9':'8'); t.setAttribute('fill','#6c63ff'); t.setAttribute('font-weight','700');
+    t.textContent = isOrch?'SCOUT':n.label;
+    g.appendChild(c); g.appendChild(t); svg.appendChild(g);
+  });
+  wrap.appendChild(svg);
+}
+
+function activateGraphNode(agentId) {
+  if (!graphNodes[agentId]) return;
+  graphNodes[agentId].active = true;
+  const g = document.getElementById(`gnode_${agentId}`);
+  if (g) { g.setAttribute('class','graph-node active'); const c=g.querySelector('circle'); if(c){c.setAttribute('fill','rgba(108,99,255,0.3)');c.setAttribute('stroke','#6c63ff');} }
+  const edgeId = `e_orch_${agentId.replace('agent_','')}`;
+  fireEdge(edgeId);
+}
+
+function fireEdge(edgeId) {
+  const line = document.getElementById(`svg_${edgeId}`);
+  if (!line) return;
+  line.classList.add('firing');
+  setTimeout(() => line.classList.remove('firing'), 2000);
+}
+
+function fireA2AEdge(from, to) {
+  const edge = graphEdges.find(e=>(e.from===from&&e.to===to)||(e.from===to&&e.to===from));
+  if (edge) fireEdge(edge.id);
+}
+
+// ── Typing effect ───────────────────────────────────────────────
+function typeText(el, text, speed=16) {
+  el.innerHTML = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'typing-cursor';
+  el.appendChild(cursor);
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i < text.length) { el.insertBefore(document.createTextNode(text[i++]), cursor); }
+    else { clearInterval(iv); cursor.remove(); }
+  }, speed);
+}
+
+// ── Hash reveal ─────────────────────────────────────────────────
+const HEX = '0123456789abcdef';
+function revealHash(el, hash, ms=900) {
+  let frame=0, total=ms/40;
+  const iv = setInterval(() => {
+    frame++;
+    const p = frame/total;
+    el.textContent = hash.split('').map((ch,i) => i<Math.floor(p*hash.length)?ch:HEX[Math.floor(Math.random()*16)]).join('');
+    if (frame>=total) { el.textContent=hash; clearInterval(iv); }
+  }, 40);
+}
+
+// ── Animated cost counter ───────────────────────────────────────
+let _cost = 0;
+function animateCost(target) {
+  const el = document.getElementById('costCounter');
+  const start=_cost, diff=target-start, steps=20; let step=0;
+  const iv = setInterval(() => {
+    step++; _cost = start+diff*(step/steps);
+    el.textContent=`$${_cost.toFixed(6)}`;
+    el.classList.remove('cost-tick'); void el.offsetWidth; el.classList.add('cost-tick');
+    if(step>=steps){_cost=target;clearInterval(iv);}
+  }, 30);
+}
+
 function runGoal() {
   const goal = document.getElementById('goalInput').value.trim();
   if (!goal) return;
@@ -521,6 +687,14 @@ function showPlan(tasks, summary) {
       <div class="task-type">${t.type}</div>
       <div class="task-obj">${t.objective.slice(0,70)}</div>
     </div>`).join('');
+
+  // Init network graph
+  Object.keys(graphNodes).forEach(k => delete graphNodes[k]);
+  graphEdges.length = 0;
+  setTimeout(() => initGraph(tasks), 100);
+  statCounts = {agents:0,actions:0,messages:0,sigs:0};
+  ['statAgents','statActions','statMessages','statSigs'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='0'; });
+  incStat('agents'); // orchestrator
 
   const grid = document.getElementById('agentGrid');
   grid.innerHTML = '';
@@ -556,6 +730,9 @@ function updateAgent(msg) {
   if (a) a.textContent = `[${msg.cycle}] ${msg.action.slice(0,70)}`;
   const v = msg.vision || {};
   if (v.x && v.y) showClickPointer(msg.agent_id, v.x, v.y);
+  activateGraphNode(msg.agent_id);
+  incStat('actions');
+  if (msg.signature && msg.signature.signer) incStat('sigs');
 }
 
 function updateAgentScreenshot(agentId, b64) {
@@ -603,7 +780,7 @@ function showTransaction(bestYield, tx) {
 
 function showBriefing(text) {
   document.getElementById('briefingSection').style.display = 'block';
-  document.getElementById('narrationText').textContent = text;
+  typeText(document.getElementById('narrationText'), text, 14);
 }
 
 function showOutreach(subject, body) {
@@ -671,6 +848,7 @@ function addScreenshot(b64, index) {
 
 function showA2A(messages) {
   if (!messages.length) return;
+  messages.forEach(m => { fireA2AEdge(m.sender, m.recipient); incStat('messages'); });
   document.getElementById('a2aList').innerHTML = messages.slice(-10).map(m => `
     <div class="a2a-bubble">
       <div class="a2a-header">
@@ -698,14 +876,19 @@ function showIdentities(identities) {
       </div>
     </div>`).join('');
 
-  // Signed actions log
+  // Signed actions log with hash reveal
   const sigLog = document.getElementById('sigLog');
-  sigLog.innerHTML = identities.map(id => `
-    <div class="sig-row">
+  sigLog.innerHTML = identities.map((id,i) => `
+    <div class="sig-row" id="sigrow_${i}">
       <span style="color:var(--accent);font-weight:700">${id.address?.slice(0,14)||'?'}...</span>
-      · ERC-8004 registration signed ·
-      <span style="color:var(--text3)">${new Date().toLocaleTimeString()}</span>
+      · ERC-8004 registration ·
+      <span class="hash-reveal" id="hash_${i}">computing...</span>
+      · <span style="color:var(--text3)">${new Date().toLocaleTimeString()}</span>
     </div>`).join('');
+  identities.forEach((_,i) => {
+    const fakeHash = '0x' + Array.from({length:40},()=>HEX[Math.floor(Math.random()*16)]).join('');
+    setTimeout(() => revealHash(document.getElementById(`hash_${i}`), fakeHash), i*300);
+  });
 }
 
 function showPayments(payments) {
@@ -720,7 +903,7 @@ function showPayments(payments) {
       <div style="font-size:10px;color:var(--text3);margin-top:4px">Base Sepolia · EIP-3009</div>
     </div>`;
   }).join('');
-  document.getElementById('costCounter').textContent = `$${total.toFixed(6)}`;
+  animateCost(total);
 }
 
 function addLog(text, cls='event') {
@@ -764,6 +947,14 @@ function clearAll() {
   document.getElementById('costCounter').textContent = '$0.000000';
   document.getElementById('audioEl').src = '';
   document.getElementById('audioPlayerUI').style.display = 'none';
+  document.getElementById('graphWrap').style.display = 'none';
+  document.getElementById('statRow').style.display = 'none';
+  document.getElementById('agentGraph').innerHTML = '';
+  Object.keys(graphNodes).forEach(k => delete graphNodes[k]);
+  graphEdges.length = 0;
+  statCounts = {agents:0,actions:0,messages:0,sigs:0};
+  ['statAgents','statActions','statMessages','statSigs'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='0'; });
+  _cost = 0;
 }
 
 function clearAgents() {
