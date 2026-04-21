@@ -3,368 +3,271 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AVA - Verifiable Multi-Agent Workflow Automation</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>SCOUT — AI Sales Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #eef1fb;
-  --glass: rgba(255,255,255,0.6);
-  --glass-dark: rgba(255,255,255,0.35);
-  --border: rgba(255,255,255,0.75);
-  --border2: rgba(160,170,230,0.25);
+  --glass: rgba(255,255,255,0.62);
+  --glass2: rgba(255,255,255,0.38);
+  --glass3: rgba(255,255,255,0.22);
+  --border: rgba(255,255,255,0.82);
+  --border2: rgba(160,170,230,0.28);
   --text: #1e2340;
   --text2: #5a6490;
   --text3: #9099c4;
   --accent: #6c63ff;
   --accent2: #9b8fff;
+  --violet: #7c3aed;
   --green: #22c55e;
   --orange: #f97316;
   --red: #ef4444;
-  --shadow: 0 8px 40px rgba(80,90,200,0.10);
-  --shadow-sm: 0 2px 12px rgba(80,90,200,0.07);
-  --radius: 18px;
-  --radius-sm: 12px;
+  --pink: #ec4899;
+  --shadow: 0 8px 40px rgba(80,90,200,0.13);
+  --shadow-sm: 0 2px 14px rgba(80,90,200,0.08);
+  --radius: 20px;
+  --radius-sm: 13px;
 }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);overflow:hidden;position:relative}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* Animated mesh background */
+.mesh{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.55;animation:drift 18s ease-in-out infinite}
+.blob1{width:600px;height:600px;background:radial-gradient(circle,rgba(140,120,255,0.45),transparent 70%);top:-10%;left:-5%;animation-delay:0s}
+.blob2{width:500px;height:500px;background:radial-gradient(circle,rgba(80,150,255,0.38),transparent 70%);bottom:-10%;right:-5%;animation-delay:-6s}
+.blob3{width:400px;height:400px;background:radial-gradient(circle,rgba(236,72,153,0.28),transparent 70%);top:40%;left:55%;animation-delay:-12s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.08)}66%{transform:translate(-30px,40px) scale(0.94)}}
 
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  background-image:
-    radial-gradient(ellipse at 15% 15%, rgba(140,120,255,0.14) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 80%, rgba(80,150,255,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 55% 5%,  rgba(220,100,180,0.08) 0%, transparent 45%);
-  min-height: 100vh;
-  color: var(--text);
-  overflow: hidden;
-}
+/* Noise texture overlay */
+.noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
 
-/* --- GLASS UTILITY --- */
-.g {
-  background: var(--glass);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-.g2 {
-  background: var(--glass-dark);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--border2);
-  box-shadow: var(--shadow-sm);
-}
+/* Glass utility */
+.g{background:var(--glass);backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);border:1px solid var(--border);box-shadow:var(--shadow)}
+.g2{background:var(--glass2);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--border2);box-shadow:var(--shadow-sm)}
+.g3{background:var(--glass3);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border2)}
 
-/* --- LAYOUT --- */
-header {
-  height: 60px;
-  background: rgba(255,255,255,0.65);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 28px;
-  gap: 14px;
-  position: sticky; top: 0; z-index: 200;
-}
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(108,99,255,0.22);border-radius:4px}
 
-.logo-mark {
-  width: 32px; height: 32px; border-radius: 9px;
-  background: linear-gradient(135deg, #6c63ff, #a78bfa);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px; font-weight: 700; color: white;
-  box-shadow: 0 3px 10px rgba(108,99,255,0.35);
-  letter-spacing: -1px;
-}
-.logo-text { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
-.logo-sub  { font-size: 11px; color: var(--text3); font-weight: 400; margin-left: 2px; }
+/* Header */
+header{position:sticky;top:0;z-index:200;height:62px;background:rgba(255,255,255,0.72);backdrop-filter:blur(32px) saturate(200%);-webkit-backdrop-filter:blur(32px) saturate(200%);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c63ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;letter-spacing:-1px;box-shadow:0 4px 12px rgba(108,99,255,0.4)}
+.logo-text{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.8px}
+.logo-tag{font-size:10px;color:var(--text3);font-weight:400;margin-left:1px}
 
-.header-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+/* Nav tabs */
+nav{display:flex;gap:4px;margin-left:20px}
+.tab{position:relative;padding:7px 16px;border-radius:10px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:transparent;font-family:'Inter',sans-serif;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+.tab:hover{background:rgba(108,99,255,0.07);color:var(--accent)}
+.tab.active{background:rgba(108,99,255,0.1);color:var(--accent);font-weight:600}
+.tab svg{width:14px;height:14px;flex-shrink:0}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid white;display:none}
+.notif-dot.show{display:block}
 
-.cost-badge {
-  display: flex; flex-direction: column; align-items: flex-end;
-}
-.cost-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; }
-.cost-value { font-size: 15px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.header-right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.cost-badge{display:flex;flex-direction:column;align-items:flex-end}
+.cost-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px}
+.cost-value{font-size:15px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.status-pill{display:flex;align-items:center;gap:6px;padding:5px 13px;border-radius:20px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);font-size:12px;font-weight:500;color:#16a34a;transition:all 0.3s}
+.status-pill.running{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.25);color:#ea580c}
+.dot{width:7px;height:7px;border-radius:50%;background:#22c55e}
+.dot.running{background:#f97316;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 
-.status-pill {
-  display: flex; align-items: center; gap: 6px;
-  padding: 5px 13px; border-radius: 20px;
-  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
-  font-size: 12px; font-weight: 500; color: #16a34a;
-  transition: all 0.3s;
-}
-.status-pill.running {
-  background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.25); color: #ea580c;
-}
-.dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
-.dot.running { background: #f97316; animation: blink 1s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* Layout */
+.app{position:relative;z-index:2;height:calc(100vh - 62px);display:flex;overflow:hidden}
+.page{display:none;flex:1;overflow:hidden}
+.page.active{display:flex}
 
-/* --- MAIN GRID --- */
-.main {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  height: calc(100vh - 60px);
-  overflow: hidden;
-}
+/* Scout page layout */
+#page-scout{flex-direction:row}
+.left{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.right{width:300px;border-left:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden;background:rgba(255,255,255,0.22)}
 
-.left  { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-.right { border-left: 1px solid var(--border2); display: flex; flex-direction: column; overflow: hidden; background: rgba(255,255,255,0.25); }
+/* Other pages */
+#page-briefing,#page-trust,#page-network{flex-direction:column;overflow-y:auto;padding:24px;gap:18px;align-items:stretch}
 
-/* --- CARDS --- */
-.card {
-  background: var(--glass);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  box-shadow: var(--shadow);
-}
+/* Cards */
+.card{background:var(--glass);backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);transition:transform 0.2s,box-shadow 0.2s}
+.card:hover{transform:translateY(-1px);box-shadow:0 12px 48px rgba(80,90,200,0.16)}
+.card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.card-label svg{width:13px;height:13px;opacity:0.7}
 
-.card-label {
-  font-size: 10px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 1.2px; color: var(--text3); margin-bottom: 12px;
-}
+/* Input */
+.prospect-input{width:100%;background:rgba(255,255,255,0.6);border:1.5px solid rgba(108,99,255,0.18);border-radius:var(--radius-sm);color:var(--text);padding:13px 15px;font-size:14px;font-family:'Inter',sans-serif;resize:none;height:80px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;line-height:1.5}
+.prospect-input:focus{border-color:rgba(108,99,255,0.45);box-shadow:0 0 0 3px rgba(108,99,255,0.09)}
+.prospect-input::placeholder{color:var(--text3)}
 
-/* --- INPUT --- */
-.goal-input {
-  width: 100%;
-  background: rgba(255,255,255,0.55);
-  border: 1.5px solid rgba(108,99,255,0.18);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  padding: 13px 15px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
-  resize: none; height: 76px; outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.goal-input:focus {
-  border-color: rgba(108,99,255,0.45);
-  box-shadow: 0 0 0 3px rgba(108,99,255,0.08);
-}
-.goal-input::placeholder { color: var(--text3); }
+/* Buttons */
+.btn{padding:10px 20px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);display:inline-flex;align-items:center;gap:7px}
+.btn:active{transform:scale(0.96)!important}
+.btn svg{width:15px;height:15px;flex-shrink:0}
+.btn-primary{background:linear-gradient(135deg,#6c63ff,#9b8fff);color:#fff;box-shadow:0 4px 16px rgba(108,99,255,0.4),inset 0 1px 0 rgba(255,255,255,0.2)}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(108,99,255,0.45)}
+.btn-primary:disabled{opacity:0.45;cursor:not-allowed;transform:none!important}
+.btn-ghost{background:rgba(255,255,255,0.55);color:var(--text2);border:1.5px solid rgba(108,99,255,0.18);backdrop-filter:blur(8px);box-shadow:0 2px 8px rgba(80,90,200,0.06),inset 0 1px 0 rgba(255,255,255,0.8)}
+.btn-ghost:hover{background:rgba(255,255,255,0.8);transform:translateY(-1px)}
+.btn-voice{background:rgba(108,99,255,0.08);color:var(--accent);border:1.5px solid rgba(108,99,255,0.22)}
+.btn-voice:hover{background:rgba(108,99,255,0.14);transform:translateY(-1px)}
+.btn-voice.recording{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.35);color:var(--red);animation:blink 1s infinite}
+.btn-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 
-/* --- BUTTONS --- */
-.btn {
-  padding: 10px 20px; border-radius: var(--radius-sm);
-  border: none; cursor: pointer;
-  font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
-  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-}
-.btn:active { transform: scale(0.96); }
+/* Example chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:500;color:var(--accent);background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.18);cursor:pointer;transition:all 0.2s}
+.chip:hover{background:rgba(108,99,255,0.15);transform:translateY(-1px)}
 
-.btn-primary {
-  background: linear-gradient(135deg, #6c63ff, #9b8fff);
-  color: white;
-  box-shadow: 0 4px 14px rgba(108,99,255,0.38), inset 0 1px 0 rgba(255,255,255,0.2);
-}
-.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 20px rgba(108,99,255,0.42); }
-.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+/* Section title */
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.section-title svg{width:12px;height:12px}
 
-.btn-ghost {
-  background: rgba(255,255,255,0.5);
-  color: var(--text2);
-  border: 1.5px solid rgba(108,99,255,0.18);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 2px 8px rgba(80,90,200,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
-}
-.btn-ghost:hover { background: rgba(255,255,255,0.75); transform: translateY(-1px); }
+/* Agent grid */
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.agent-card{background:rgba(255,255,255,0.45);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1.5px solid rgba(255,255,255,0.7);border-radius:16px;padding:14px;transition:all 0.3s;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.agent-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(108,99,255,0.04),transparent);pointer-events:none}
+.agent-card.active{border-color:rgba(108,99,255,0.38);box-shadow:0 4px 24px rgba(108,99,255,0.14);background:rgba(255,255,255,0.62)}
+.agent-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.agent-name{font-size:13px;font-weight:700;color:var(--accent)}
+.agent-type-badge{margin-left:auto;padding:2px 9px;border-radius:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.badge-research{background:rgba(96,165,250,0.14);color:#2563eb}
+.badge-verify{background:rgba(34,197,94,0.14);color:#16a34a}
+.badge-execute{background:rgba(249,115,22,0.14);color:#ea580c}
+.agent-url{font-size:11px;color:var(--text3);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agent-action{font-size:12px;color:var(--text2);line-height:1.4}
 
-.btn-voice {
-  background: rgba(108,99,255,0.08);
-  color: var(--accent);
-  border: 1.5px solid rgba(108,99,255,0.2);
-}
-.btn-voice:hover { background: rgba(108,99,255,0.14); transform: translateY(-1px); }
-.btn-voice.recording { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: var(--red); animation: blink 1s infinite; }
+/* Pulse ring on active agent */
+.agent-pulse{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--green);display:none}
+.agent-pulse::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--green);animation:pulse-ring 1.5s ease-out infinite}
+.agent-card.active .agent-pulse{display:block}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:1}100%{transform:scale(2.2);opacity:0}}
 
-.btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+/* Browser viewer */
+.browser-viewer{position:relative;width:100%;margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid var(--border2);background:#f0f2ff}
+.browser-viewer img{width:100%;display:block}
+.click-pointer{position:absolute;width:22px;height:22px;border-radius:50%;background:rgba(108,99,255,0.22);border:2px solid #6c63ff;transform:translate(-50%,-50%);pointer-events:none;transition:left 0.4s cubic-bezier(0.34,1.56,0.64,1),top 0.4s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 0 4px rgba(108,99,255,0.1)}
+.click-pointer::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#6c63ff;animation:ping 1s ease-out infinite}
+@keyframes ping{0%{transform:scale(1);opacity:1}100%{transform:scale(2.5);opacity:0}}
+.click-ripple{position:absolute;width:40px;height:40px;border-radius:50%;border:2px solid #6c63ff;transform:translate(-50%,-50%) scale(0);pointer-events:none;animation:ripple 0.6s ease-out forwards}
+@keyframes ripple{to{transform:translate(-50%,-50%) scale(3);opacity:0}}
 
-/* --- AGENT GRID --- */
-.agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 12px; }
+/* Empty state */
+.empty-state{color:var(--text3);font-size:13px;text-align:center;padding:32px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.empty-dots{display:flex;gap:6px}
+.empty-dots span{width:7px;height:7px;border-radius:50%;background:rgba(108,99,255,0.25);animation:bounce 1.4s ease-in-out infinite}
+.empty-dots span:nth-child(2){animation-delay:0.2s}
+.empty-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
 
-.agent-card {
-  background: rgba(255,255,255,0.42);
-  backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(255,255,255,0.65);
-  border-radius: 16px;
-  padding: 14px;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
-  position: relative; overflow: hidden;
-}
-.agent-card.active {
-  border-color: rgba(108,99,255,0.35);
-  box-shadow: 0 4px 20px rgba(108,99,255,0.12);
-  background: rgba(255,255,255,0.58);
-}
-.agent-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.agent-type-badge {
-  margin-left: auto; padding: 2px 8px; border-radius: 8px;
-  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
-}
-.badge-research { background: rgba(96,165,250,0.12); color: #2563eb; }
-.badge-verify   { background: rgba(34,197,94,0.12);  color: #16a34a; }
-.badge-execute  { background: rgba(249,115,22,0.12); color: #ea580c; }
+/* TX card */
+.tx-card{background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(96,165,250,0.05));border:1.5px solid rgba(34,197,94,0.25);border-radius:var(--radius);padding:20px;backdrop-filter:blur(16px)}
+.tx-apy{font-size:32px;font-weight:800;color:#16a34a;letter-spacing:-1.5px}
+.tx-step{background:rgba(255,255,255,0.55);border:1px solid var(--border2);border-radius:10px;padding:9px 13px;margin:5px 0;font-size:12px;color:var(--text2)}
+.tx-step-num{color:var(--green);font-weight:700;margin-right:6px}
 
-.agent-name   { font-size: 13px; font-weight: 600; color: var(--accent); }
-.agent-url    { font-size: 11px; color: var(--text3); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.agent-action { font-size: 12px; color: var(--text2); line-height: 1.4; }
+/* Right panel */
+.plan-panel{padding:14px 16px;border-bottom:1px solid var(--border2)}
+.plan-panel h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:10px}
+.task-item{background:rgba(255,255,255,0.45);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:12px}
+.task-type{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--accent)}
+.task-obj{color:var(--text2);margin-top:2px}
+.log-panel{flex:1;overflow-y:auto;padding:14px 16px}
+.log-panel h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:10px;position:sticky;top:0;background:rgba(235,238,252,0.88);backdrop-filter:blur(8px);padding-bottom:8px}
+.log-entry{font-size:11px;color:var(--text3);padding:4px 0;border-bottom:1px solid rgba(160,170,230,0.1);line-height:1.5}
+.log-entry .ts{color:rgba(160,170,230,0.55);margin-right:6px}
+.log-entry.event-status{color:var(--accent)}
+.log-entry.event-plan{color:var(--violet)}
+.log-entry.event-complete{color:#16a34a}
+.log-entry.event-error{color:var(--red)}
 
-/* --- BROWSER VIEWER (Clicky-style) --- */
-.browser-viewer {
-  position: relative; width: 100%; margin-top: 10px;
-  border-radius: 10px; overflow: hidden;
-  border: 1px solid var(--border2);
-  background: #f8f9ff;
-}
-.browser-viewer img { width: 100%; display: block; }
+/* Briefing page */
+.briefing-card{background:linear-gradient(135deg,rgba(108,99,255,0.08),rgba(155,143,255,0.04));border:1.5px solid rgba(108,99,255,0.2);border-radius:var(--radius);padding:22px;backdrop-filter:blur(18px)}
+.narration-text{font-size:14px;line-height:1.8;color:var(--text)}
+.outreach-card{background:linear-gradient(135deg,rgba(34,197,94,0.07),rgba(96,165,250,0.04));border:1.5px solid rgba(34,197,94,0.2);border-radius:var(--radius);padding:22px;backdrop-filter:blur(18px)}
+.outreach-subject{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border2)}
+.outreach-body{font-size:13px;line-height:1.75;color:var(--text2);white-space:pre-wrap}
 
-/* Animated pointer dot - Clicky style */
-.click-pointer {
-  position: absolute;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: rgba(108,99,255,0.25);
-  border: 2px solid #6c63ff;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  transition: left 0.4s cubic-bezier(0.34,1.56,0.64,1),
-              top  0.4s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow: 0 0 0 4px rgba(108,99,255,0.12);
-}
-.click-pointer::after {
-  content: '';
-  position: absolute; inset: 3px;
-  border-radius: 50%;
-  background: #6c63ff;
-  animation: ping 1s ease-out infinite;
-}
-@keyframes ping {
-  0%   { transform: scale(1); opacity: 1; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
+/* Custom audio player */
+.audio-player{background:rgba(255,255,255,0.55);border:1.5px solid rgba(108,99,255,0.18);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-top:14px}
+.audio-play-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#9b8fff);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(108,99,255,0.35);transition:transform 0.2s}
+.audio-play-btn:hover{transform:scale(1.08)}
+.audio-play-btn svg{width:16px;height:16px;fill:#fff}
+.audio-progress-wrap{flex:1;display:flex;flex-direction:column;gap:5px}
+.audio-progress{width:100%;height:4px;border-radius:4px;background:rgba(108,99,255,0.15);cursor:pointer;appearance:none;-webkit-appearance:none;outline:none}
+.audio-progress::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:#6c63ff;cursor:pointer;box-shadow:0 2px 6px rgba(108,99,255,0.4)}
+.audio-progress::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(to right,#6c63ff var(--pct,0%),rgba(108,99,255,0.15) var(--pct,0%))}
+.audio-time{font-size:11px;color:var(--text3);font-variant-numeric:tabular-nums}
 
-/* Click ripple */
-.click-ripple {
-  position: absolute;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  border: 2px solid #6c63ff;
-  transform: translate(-50%, -50%) scale(0);
-  pointer-events: none;
-  animation: ripple 0.6s ease-out forwards;
-}
-@keyframes ripple {
-  to { transform: translate(-50%, -50%) scale(3); opacity: 0; }
-}
+/* Media grid */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.media-grid img{width:100%;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;box-shadow:var(--shadow-sm)}
+.media-grid img:hover{transform:scale(1.04);box-shadow:var(--shadow)}
 
-/* --- SECTION TITLE --- */
-.section-title {
-  font-size: 10px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 1.2px; color: var(--text3); margin-bottom: 10px;
-}
+/* Trust page */
+.identity-card{background:linear-gradient(135deg,rgba(124,58,237,0.09),rgba(108,99,255,0.05));border:1.5px solid rgba(124,58,237,0.22);border-radius:var(--radius);padding:18px;backdrop-filter:blur(18px)}
+.nft-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--violet);margin-bottom:10px}
+.sig-row{background:rgba(255,255,255,0.45);border:1px solid var(--border2);border-radius:10px;padding:9px 13px;margin-bottom:6px;font-size:11px;font-family:monospace;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* --- BRIEFING --- */
-.briefing-card {
-  background: linear-gradient(135deg, rgba(108,99,255,0.07), rgba(155,143,255,0.04));
-  border: 1.5px solid rgba(108,99,255,0.18);
-  border-radius: var(--radius);
-  padding: 20px;
-  backdrop-filter: blur(16px);
-}
-.narration-text { font-size: 14px; line-height: 1.75; color: var(--text); }
-audio { width: 100%; margin-top: 12px; border-radius: 10px; }
+/* Network page */
+.a2a-bubble{background:rgba(255,255,255,0.48);border:1px solid var(--border2);border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:12px;backdrop-filter:blur(12px)}
+.a2a-header{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap}
+.a2a-sender{font-weight:700;color:var(--accent)}
+.a2a-arrow{color:var(--text3)}
+.a2a-recipient{font-weight:700;color:var(--violet)}
+.a2a-type{padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;background:rgba(108,99,255,0.1);color:var(--accent)}
+.a2a-content{color:var(--text2);font-size:11px;line-height:1.4}
+.payment-card{background:linear-gradient(135deg,rgba(249,115,22,0.08),rgba(251,191,36,0.04));border:1.5px solid rgba(249,115,22,0.22);border-radius:var(--radius);padding:18px;backdrop-filter:blur(18px)}
+.payment-amount{font-size:24px;font-weight:800;color:var(--orange);letter-spacing:-1px}
 
-/* --- MEDIA GRID --- */
-.media-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-.media-grid img {
-  width: 100%; border-radius: 10px;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: var(--shadow-sm);
-}
-.media-grid img:hover { transform: scale(1.04); box-shadow: var(--shadow); }
-
-/* --- TX CARD --- */
-.tx-card {
-  background: linear-gradient(135deg, rgba(34,197,94,0.07), rgba(96,165,250,0.04));
-  border: 1.5px solid rgba(34,197,94,0.22);
-  border-radius: var(--radius);
-  padding: 20px;
-  backdrop-filter: blur(16px);
-}
-.tx-apy { font-size: 30px; font-weight: 700; color: #16a34a; letter-spacing: -1px; }
-.tx-step {
-  background: rgba(255,255,255,0.5);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  padding: 9px 13px; margin: 5px 0;
-  font-size: 12px; color: var(--text2);
-}
-.tx-step-num { color: var(--green); font-weight: 600; margin-right: 6px; }
-
-/* --- IDENTITY / PAYMENT PILLS --- */
-.identity-pill {
-  background: rgba(108,99,255,0.07);
-  border: 1.5px solid rgba(108,99,255,0.18);
-  border-radius: 14px; padding: 12px 14px; font-size: 12px;
-}
-.payment-pill {
-  background: rgba(249,115,22,0.07);
-  border: 1.5px solid rgba(249,115,22,0.18);
-  border-radius: 14px; padding: 12px 14px; font-size: 12px;
-}
-
-/* --- RIGHT PANEL --- */
-.plan-panel { padding: 14px 16px; border-bottom: 1px solid var(--border2); }
-.plan-panel h3 { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 10px; }
-.task-item {
-  background: rgba(255,255,255,0.4); border: 1px solid var(--border2);
-  border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; font-size: 12px;
-}
-.task-type { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--accent); }
-.task-obj  { color: var(--text2); margin-top: 2px; }
-
-.log-panel { flex: 1; overflow-y: auto; padding: 14px 16px; }
-.log-panel h3 { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 10px; position: sticky; top: 0; background: rgba(240,244,255,0.85); backdrop-filter: blur(8px); padding-bottom: 8px; }
-.log-entry { font-size: 11px; color: var(--text3); padding: 4px 0; border-bottom: 1px solid rgba(160,170,230,0.1); line-height: 1.5; }
-.log-entry .ts { color: rgba(160,170,230,0.5); margin-right: 6px; }
-.log-entry.event-status   { color: var(--accent); }
-.log-entry.event-plan     { color: #7c3aed; }
-.log-entry.event-complete { color: #16a34a; }
-.log-entry.event-error    { color: var(--red); }
-
-/* --- A2A --- */
-.a2a-msg {
-  background: rgba(255,255,255,0.35); border: 1px solid var(--border2);
-  border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; font-size: 11px;
-}
-
-/* --- EMPTY STATE --- */
-.empty-state { color: var(--text3); font-size: 13px; text-align: center; padding: 24px; }
-
-/* --- SCROLLBAR --- */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.18); border-radius: 4px; }
+/* Page grid for briefing/trust/network */
+.page-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;width:100%}
+.page-grid-full{width:100%}
 </style>
 </head>
-
 <body>
 
+<div class="mesh">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+</div>
+<div class="noise"></div>
+
 <header>
-  <div class="logo-mark">AV</div>
-  <div>
-    <span class="logo-text">AVA</span>
-    <span class="logo-sub">Verifiable Multi-Agent Workflow Automation</span>
+  <div class="logo">
+    <div class="logo-mark">SC</div>
+    <div>
+      <span class="logo-text">SCOUT</span>
+      <span class="logo-tag"> AI Sales Intelligence</span>
+    </div>
   </div>
+
+  <nav>
+    <button class="tab active" onclick="switchPage('scout')" id="tab-scout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Scout
+      <span class="notif-dot" id="notif-scout"></span>
+    </button>
+    <button class="tab" onclick="switchPage('briefing')" id="tab-briefing">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Briefing
+      <span class="notif-dot" id="notif-briefing"></span>
+    </button>
+    <button class="tab" onclick="switchPage('trust')" id="tab-trust">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Trust
+      <span class="notif-dot" id="notif-trust"></span>
+    </button>
+    <button class="tab" onclick="switchPage('network')" id="tab-network">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
+      Network
+      <span class="notif-dot" id="notif-network"></span>
+    </button>
+  </nav>
+
   <div class="header-right">
     <div class="cost-badge">
       <span class="cost-label">x402 Cost</span>
@@ -377,114 +280,215 @@ audio { width: 100%; margin-top: 12px; border-radius: 10px; }
   </div>
 </header>
 
-<div class="main">
-  <div class="left">
+<div class="app">
 
-    <!-- Goal input -->
-    <div class="card">
-      <div class="card-label">Workflow Goal</div>
-      <textarea class="goal-input" id="goalInput"
-        placeholder="e.g. Research top 3 competitors to Notion and compare pricing&#10;e.g. Find best USDC yield across Aave, Morpho and Compound&#10;Double-click for examples"></textarea>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="runBtn" onclick="runGoal()">Launch AVA</button>
-        <button class="btn btn-voice"   id="voiceBtn" onclick="toggleVoice()">Voice Input</button>
-        <button class="btn btn-ghost"   onclick="clearAll()">Clear</button>
+  <!-- PAGE: SCOUT -->
+  <div class="page active" id="page-scout">
+    <div class="left">
+
+      <div class="card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Prospect Research
+        </div>
+        <textarea class="prospect-input" id="goalInput"
+          placeholder="Enter prospect name + company URL&#10;e.g. Sarah Chen, VP Sales at Notion (notion.so)"></textarea>
+        <div class="chips">
+          <span class="chip" onclick="setExample(0)">Sarah Chen · Notion</span>
+          <span class="chip" onclick="setExample(1)">Marcus Rivera · Linear</span>
+          <span class="chip" onclick="setExample(2)">Priya Patel · Figma</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="runBtn" onclick="runGoal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Launch Scout
+          </button>
+          <button class="btn btn-voice" id="voiceBtn" onclick="toggleVoice()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            Voice
+          </button>
+          <button class="btn btn-ghost" onclick="clearAll()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Clear
+          </button>
+        </div>
       </div>
+
+      <div id="txSection" style="display:none">
+        <div class="tx-card">
+          <div class="card-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Recommended Action
+          </div>
+          <div id="txContent"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Active Agents
+        </div>
+        <div class="agent-grid" id="agentGrid">
+          <div class="empty-state">
+            <div class="empty-dots"><span></span><span></span><span></span></div>
+            Agents appear when Scout launches
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Transaction preview -->
-    <div id="txSection" style="display:none">
-      <div class="tx-card">
-        <div class="card-label">Recommended Action</div>
-        <div id="txContent"></div>
+    <div class="right">
+      <div class="plan-panel" id="planPanel" style="display:none">
+        <h3>Execution Plan</h3>
+        <div id="planTasks"></div>
+      </div>
+      <div class="log-panel">
+        <h3>Live Feed</h3>
+        <div id="logEntries"></div>
       </div>
     </div>
+  </div>
 
-    <!-- Agents -->
-    <div>
-      <div class="section-title">Active Agents</div>
-      <div class="agent-grid" id="agentGrid">
-        <div class="empty-state">Agents appear here when AVA launches</div>
-      </div>
-    </div>
-
-    <!-- Briefing -->
-    <div id="briefingSection" style="display:none">
-      <div class="briefing-card">
-        <div class="card-label">AVA Briefing</div>
+  <!-- PAGE: BRIEFING -->
+  <div class="page" id="page-briefing">
+    <div class="page-grid">
+      <div id="briefingSection" style="display:none" class="briefing-card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Intelligence Brief
+        </div>
         <div class="narration-text" id="narrationText"></div>
-        <audio id="audioPlayer" controls style="display:none"></audio>
+        <div class="audio-player" id="audioPlayerUI" style="display:none">
+          <button class="audio-play-btn" id="audioPlayBtn" onclick="toggleAudio()">
+            <svg id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <div class="audio-progress-wrap">
+            <input type="range" class="audio-progress" id="audioProgress" value="0" min="0" max="100" step="0.1" oninput="seekAudio(this.value)">
+            <span class="audio-time" id="audioTime">0:00 / 0:00</span>
+          </div>
+        </div>
+        <audio id="audioEl" style="display:none"></audio>
+      </div>
+
+      <div id="outreachSection" style="display:none" class="outreach-card">
+        <div class="card-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Outreach Draft
+        </div>
+        <div class="outreach-subject" id="outreachSubject"></div>
+        <div class="outreach-body" id="outreachBody"></div>
       </div>
     </div>
 
-    <!-- Storyboard -->
-    <div id="storyboardSection" style="display:none">
-      <div class="section-title">Visual Storyboard</div>
+    <div id="storyboardSection" style="display:none" class="page-grid-full">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Visual Storyboard
+      </div>
       <div class="media-grid" id="storyboardGrid"></div>
     </div>
 
-    <!-- Screenshots -->
-    <div id="screenshotsSection" style="display:none">
-      <div class="section-title">Agent Screenshots</div>
+    <div id="screenshotsSection" style="display:none" class="page-grid-full">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Agent Screenshots
+      </div>
       <div class="media-grid" id="screenshotsGrid"></div>
     </div>
-
-    <!-- Identities -->
-    <div id="identitySection" style="display:none">
-      <div class="section-title">ERC-8004 Agent Identities — Taiko L2</div>
-      <div class="agent-grid" id="identityGrid"></div>
-    </div>
-
-    <!-- Payments -->
-    <div id="paymentSection" style="display:none">
-      <div class="section-title">x402 Payment Receipts — Base Sepolia</div>
-      <div class="agent-grid" id="paymentGrid"></div>
-    </div>
-
-    <!-- A2A -->
-    <div id="a2aSection" style="display:none">
-      <div class="section-title">A2A Agent Messages</div>
-      <div id="a2aList"></div>
-    </div>
-
   </div>
 
-  <div class="right">
-    <div class="plan-panel" id="planPanel" style="display:none">
-      <h3>Execution Plan</h3>
-      <div id="planTasks"></div>
+  <!-- PAGE: TRUST -->
+  <div class="page" id="page-trust">
+    <div class="section-title" style="width:100%">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      ERC-8004 Agent Identities — Taiko L2
     </div>
-    <div class="log-panel">
-      <h3>Live Feed</h3>
-      <div id="logEntries"></div>
+    <div class="page-grid" id="identityGrid">
+      <div class="empty-state">No identities yet — run Scout to register agents</div>
+    </div>
+    <div class="section-title" style="width:100%;margin-top:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+      Signed Action Log
+    </div>
+    <div class="page-grid-full" id="sigLog">
+      <div class="empty-state">Signed actions appear here</div>
     </div>
   </div>
+
+  <!-- PAGE: NETWORK -->
+  <div class="page" id="page-network">
+    <div class="page-grid">
+      <div>
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
+          A2A Agent Messages
+        </div>
+        <div id="a2aList"><div class="empty-state">No messages yet</div></div>
+      </div>
+      <div>
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          x402 Payment Receipts — Base Sepolia
+        </div>
+        <div id="paymentGrid"><div class="empty-state">No payments yet</div></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-
 <script>
-const ws = new WebSocket(`ws://${location.host}/ws`);
+const EXAMPLES = [
+  'Sarah Chen, VP Sales at Notion (notion.so)',
+  'Marcus Rivera, CTO at Linear (linear.app)',
+  'Priya Patel, Head of Growth at Figma (figma.com)',
+];
 const agents = {};
+let currentPage = 'scout';
+const ws = new WebSocket(`ws://${location.host}/ws`);
 
 ws.onmessage = e => handleMessage(JSON.parse(e.data));
-ws.onopen  = () => addLog('Connected', 'status');
+ws.onopen  = () => addLog('Connected to SCOUT', 'status');
 ws.onclose = () => addLog('Disconnected', 'error');
 
 function handleMessage(msg) {
   const t = msg.type;
-  if      (t === 'status')        { addLog(msg.msg, 'status'); if (msg.msg.includes('Launching')) setRunning(true); }
-  else if (t === 'plan')          { showPlan(msg.tasks, msg.summary); addLog(`Plan: ${msg.summary}`, 'plan'); }
-  else if (t === 'agent_event')   { updateAgent(msg); addLog(`[${msg.agent_id}] ${msg.action.slice(0,55)}`, 'event'); }
-  else if (t === 'transaction')   { showTransaction(msg.best_yield, msg.tx); addLog(`Best yield: ${msg.best_yield.protocol} ${msg.best_yield.apy}`, 'complete'); }
-  else if (t === 'a2a_messages')  { showA2A(msg.messages); }
-  else if (t === 'identities')    { showIdentities(msg.identities); }
-  else if (t === 'payments')      { showPayments(msg.payments); }
-  else if (t === 'narration')     { showBriefing(msg.text); }
-  else if (t === 'audio')         { playAudio(msg.b64); }
-  else if (t === 'storyboard_frame') { addStoryboardFrame(msg.b64, msg.index, msg.prompt); }
-  else if (t === 'screenshot')    { addScreenshot(msg.b64, msg.index); const k = Object.keys(agents)[msg.index]; if(k) updateAgentScreenshot(k, msg.b64); }
-  else if (t === 'complete')      { setRunning(false); addLog(`Done in ${msg.elapsed_sec}s`, 'complete'); }
-  else if (t === 'error')         { addLog(`Error: ${msg.msg}`, 'error'); setRunning(false); }
+  if      (t === 'status')           { addLog(msg.msg, 'status'); if (msg.msg.includes('Launching')) setRunning(true); }
+  else if (t === 'plan')             { showPlan(msg.tasks, msg.summary); addLog(`Plan: ${msg.summary}`, 'plan'); }
+  else if (t === 'agent_event')      { updateAgent(msg); addLog(`[${msg.agent_id}] ${msg.action.slice(0,55)}`, 'event'); }
+  else if (t === 'transaction')      { showTransaction(msg.best_yield, msg.tx); addLog(`Best: ${msg.best_yield.protocol} ${msg.best_yield.apy}`, 'complete'); }
+  else if (t === 'a2a_messages')     { showA2A(msg.messages); notify('network'); }
+  else if (t === 'identities')       { showIdentities(msg.identities); notify('trust'); }
+  else if (t === 'payments')         { showPayments(msg.payments); notify('network'); }
+  else if (t === 'narration')        { showBriefing(msg.text); notify('briefing'); }
+  else if (t === 'audio')            { loadAudio(msg.b64); notify('briefing'); }
+  else if (t === 'storyboard_frame') { addStoryboardFrame(msg.b64, msg.index, msg.prompt); notify('briefing'); }
+  else if (t === 'screenshot')       { addScreenshot(msg.b64, msg.index); const k = Object.keys(agents)[msg.index]; if(k) updateAgentScreenshot(k, msg.b64); }
+  else if (t === 'complete')         { setRunning(false); addLog(`Done in ${msg.elapsed_sec}s`, 'complete'); }
+  else if (t === 'error')            { addLog(`Error: ${msg.msg}`, 'error'); setRunning(false); }
+}
+
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  const dot = document.getElementById(`notif-${name}`);
+  if (dot) dot.classList.remove('show');
+  currentPage = name;
+}
+
+function notify(page) {
+  if (currentPage !== page) {
+    const dot = document.getElementById(`notif-${page}`);
+    if (dot) dot.classList.add('show');
+  }
+}
+
+function setExample(i) {
+  document.getElementById('goalInput').value = EXAMPLES[i];
 }
 
 function runGoal() {
@@ -493,7 +497,7 @@ function runGoal() {
   clearAgents();
   ws.send(JSON.stringify({type:'run', goal}));
   setRunning(true);
-  addLog(`Goal: ${goal}`, 'status');
+  addLog(`Researching: ${goal}`, 'status');
 }
 
 function showPlan(tasks, summary) {
@@ -510,19 +514,22 @@ function showPlan(tasks, summary) {
   tasks.forEach(t => {
     agents[`agent_${t.id}`] = t;
     const bc = t.type==='research' ? 'badge-research' : t.type==='verify' ? 'badge-verify' : 'badge-execute';
-    grid.innerHTML += `
-      <div class="agent-card" id="card_agent_${t.id}">
-        <div class="agent-card-header">
-          <span class="agent-name">agent_${t.id}</span>
-          <span class="agent-type-badge ${bc}">${t.type}</span>
-        </div>
-        <div class="agent-url" id="url_agent_${t.id}">${t.url}</div>
-        <div class="agent-action" id="action_agent_${t.id}">Initializing...</div>
-        <div class="browser-viewer" id="viewer_agent_${t.id}" style="display:none">
-          <img id="img_agent_${t.id}" src="" alt="browser">
-          <div class="click-pointer" id="ptr_agent_${t.id}" style="display:none;left:50%;top:50%"></div>
-        </div>
+    const div = document.createElement('div');
+    div.className = 'agent-card';
+    div.id = `card_agent_${t.id}`;
+    div.innerHTML = `
+      <div class="agent-pulse"></div>
+      <div class="agent-card-header">
+        <span class="agent-name">agent_${t.id}</span>
+        <span class="agent-type-badge ${bc}">${t.type}</span>
+      </div>
+      <div class="agent-url" id="url_agent_${t.id}">${t.url}</div>
+      <div class="agent-action" id="action_agent_${t.id}">Initializing...</div>
+      <div class="browser-viewer" id="viewer_agent_${t.id}" style="display:none">
+        <img id="img_agent_${t.id}" src="" alt="browser">
+        <div class="click-pointer" id="ptr_agent_${t.id}" style="display:none;left:50%;top:50%"></div>
       </div>`;
+    grid.appendChild(div);
   });
 }
 
@@ -534,12 +541,8 @@ function updateAgent(msg) {
   const a = document.getElementById(`action_${msg.agent_id}`);
   if (u) u.textContent = msg.url;
   if (a) a.textContent = `[${msg.cycle}] ${msg.action.slice(0,70)}`;
-
-  // Show click pointer if vision check has coordinates
   const v = msg.vision || {};
-  if (v.x && v.y) {
-    showClickPointer(msg.agent_id, v.x, v.y);
-  }
+  if (v.x && v.y) showClickPointer(msg.agent_id, v.x, v.y);
 }
 
 function updateAgentScreenshot(agentId, b64) {
@@ -550,21 +553,15 @@ function updateAgentScreenshot(agentId, b64) {
   img.src = `data:image/png;base64,${b64}`;
 }
 
-// Clicky-style: animate pointer to click coordinates on the screenshot
 function showClickPointer(agentId, xPct, yPct) {
   const viewer = document.getElementById(`viewer_${agentId}`);
   const ptr    = document.getElementById(`ptr_${agentId}`);
   if (!viewer || !ptr) return;
-
-  // xPct/yPct are pixel coords from 1280x720 screenshot — convert to %
   const xP = (xPct / 1280 * 100).toFixed(1) + '%';
   const yP = (yPct / 720  * 100).toFixed(1) + '%';
-
   ptr.style.display = 'block';
   ptr.style.left = xP;
   ptr.style.top  = yP;
-
-  // Add ripple effect
   const ripple = document.createElement('div');
   ripple.className = 'click-ripple';
   ripple.style.left = xP;
@@ -584,63 +581,63 @@ function showTransaction(bestYield, tx) {
     <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px">
       <div class="tx-apy">${bestYield.apy||'?'}</div>
       <div>
-        <div style="font-size:14px;font-weight:600;color:var(--text)">${bestYield.protocol||'?'} · ${bestYield.asset||'USDC'}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${bestYield.protocol||'?'} · ${bestYield.asset||'USDC'}</div>
         <div style="font-size:11px;color:var(--text3)">Confidence: ${bestYield.confidence||'?'} · ${tx.chain||'Base Sepolia'}</div>
       </div>
-    </div>
-    ${steps}
+    </div>${steps}
     <div style="color:var(--orange);font-size:11px;margin-top:10px">${tx.note||'Connect wallet to sign and execute'}</div>`;
-}
-
-function showA2A(messages) {
-  if (!messages.length) return;
-  document.getElementById('a2aSection').style.display = 'block';
-  document.getElementById('a2aList').innerHTML = messages.slice(-8).map(m => `
-    <div class="a2a-msg">
-      <span style="color:var(--accent);font-weight:600">${m.sender}</span>
-      <span style="color:var(--text3)"> to </span>
-      <span style="color:#7c3aed;font-weight:600">${m.recipient}</span>
-      <span style="color:var(--text3)"> [${m.type}]</span>
-      <div style="color:var(--text2);margin-top:3px;font-size:10px">${JSON.stringify(m.content).slice(0,80)}</div>
-    </div>`).join('');
-}
-
-function showIdentities(identities) {
-  if (!identities.length) return;
-  document.getElementById('identitySection').style.display = 'block';
-  document.getElementById('identityGrid').innerHTML = identities.map(id => `
-    <div class="identity-pill">
-      <div style="font-weight:600;color:var(--accent);margin-bottom:4px">NFT #${id.nft_id||'?'}</div>
-      <div style="color:var(--text3);font-size:10px;font-family:monospace">${(id.address||'').slice(0,22)}...</div>
-      <div style="color:var(--text3);font-size:10px;margin-top:2px">Taiko L2 · ${id.registration?.status||'simulated'}</div>
-    </div>`).join('');
-}
-
-function showPayments(payments) {
-  if (!payments.length) return;
-  document.getElementById('paymentSection').style.display = 'block';
-  let total = 0;
-  document.getElementById('paymentGrid').innerHTML = payments.map(p => {
-    total += p.total_usdc||0;
-    return `<div class="payment-pill">
-      <div style="font-weight:600;color:var(--orange);margin-bottom:4px">${p.total_payments||0} verified actions</div>
-      <div style="color:var(--text3);font-size:10px;font-family:monospace">${(p.wallet||'').slice(0,22)}...</div>
-      <div style="color:var(--text2);font-size:11px;margin-top:4px">$${(p.total_usdc||0).toFixed(6)} USDC · Base Sepolia</div>
-    </div>`;
-  }).join('');
-  document.getElementById('costCounter').textContent = `$${total.toFixed(6)}`;
 }
 
 function showBriefing(text) {
   document.getElementById('briefingSection').style.display = 'block';
   document.getElementById('narrationText').textContent = text;
+  // Generate outreach draft from briefing
+  const lines = text.split('. ');
+  const subject = `Quick thought on ${lines[0].split(' ').slice(-3).join(' ')}`;
+  const body = `Hi,\n\n${text}\n\nWould love to connect and explore how we can help.\n\nBest,\nScout`;
+  document.getElementById('outreachSection').style.display = 'block';
+  document.getElementById('outreachSubject').textContent = `Subject: ${subject}`;
+  document.getElementById('outreachBody').textContent = body;
 }
 
-function playAudio(b64) {
-  const p = document.getElementById('audioPlayer');
-  p.style.display = 'block';
-  p.src = `data:audio/mp3;base64,${b64}`;
-  p.play().catch(()=>{});
+function loadAudio(b64) {
+  const el = document.getElementById('audioEl');
+  el.src = `data:audio/mp3;base64,${b64}`;
+  el.onloadedmetadata = () => updateAudioTime();
+  el.ontimeupdate = () => {
+    const pct = el.duration ? (el.currentTime / el.duration * 100) : 0;
+    const prog = document.getElementById('audioProgress');
+    prog.value = pct;
+    prog.style.setProperty('--pct', pct + '%');
+    updateAudioTime();
+  };
+  el.onended = () => {
+    document.getElementById('playIcon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+  };
+  document.getElementById('audioPlayerUI').style.display = 'flex';
+}
+
+function toggleAudio() {
+  const el = document.getElementById('audioEl');
+  const icon = document.getElementById('playIcon');
+  if (el.paused) {
+    el.play();
+    icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+  } else {
+    el.pause();
+    icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
+}
+
+function seekAudio(val) {
+  const el = document.getElementById('audioEl');
+  if (el.duration) el.currentTime = val / 100 * el.duration;
+}
+
+function updateAudioTime() {
+  const el = document.getElementById('audioEl');
+  const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  document.getElementById('audioTime').textContent = `${fmt(el.currentTime||0)} / ${fmt(el.duration||0)}`;
 }
 
 function addStoryboardFrame(b64, index, prompt) {
@@ -650,7 +647,6 @@ function addStoryboardFrame(b64, index, prompt) {
   img.title = prompt;
   img.onclick = () => window.open(img.src, '_blank');
   document.getElementById('storyboardGrid').appendChild(img);
-  addLog(`Storyboard frame ${index+1} generated`, 'complete');
 }
 
 function addScreenshot(b64, index) {
@@ -659,6 +655,60 @@ function addScreenshot(b64, index) {
   img.src = `data:image/png;base64,${b64}`;
   img.onclick = () => window.open(img.src, '_blank');
   document.getElementById('screenshotsGrid').appendChild(img);
+}
+
+function showA2A(messages) {
+  if (!messages.length) return;
+  document.getElementById('a2aList').innerHTML = messages.slice(-10).map(m => `
+    <div class="a2a-bubble">
+      <div class="a2a-header">
+        <span class="a2a-sender">${m.sender}</span>
+        <span class="a2a-arrow">→</span>
+        <span class="a2a-recipient">${m.recipient}</span>
+        <span class="a2a-type">${m.type}</span>
+      </div>
+      <div class="a2a-content">${JSON.stringify(m.content).slice(0,100)}</div>
+    </div>`).join('');
+}
+
+function showIdentities(identities) {
+  if (!identities.length) return;
+  document.getElementById('identityGrid').innerHTML = identities.map(id => `
+    <div class="identity-card">
+      <div class="nft-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        NFT #${id.nft_id||'?'}
+      </div>
+      <div style="font-size:11px;color:var(--text3);font-family:monospace;margin-bottom:6px">${(id.address||'').slice(0,26)}...</div>
+      <div style="font-size:11px;color:var(--text2)">Taiko L2 · Chain 167000</div>
+      <div style="margin-top:8px">
+        <span style="padding:2px 9px;border-radius:6px;font-size:10px;font-weight:700;background:${id.registration?.status==='registered'?'rgba(34,197,94,0.12)':'rgba(249,115,22,0.12)'};color:${id.registration?.status==='registered'?'#16a34a':'#ea580c'}">${id.registration?.status||'simulated'}</span>
+      </div>
+    </div>`).join('');
+
+  // Signed actions log
+  const sigLog = document.getElementById('sigLog');
+  sigLog.innerHTML = identities.map(id => `
+    <div class="sig-row">
+      <span style="color:var(--accent);font-weight:700">${id.address?.slice(0,14)||'?'}...</span>
+      · ERC-8004 registration signed ·
+      <span style="color:var(--text3)">${new Date().toLocaleTimeString()}</span>
+    </div>`).join('');
+}
+
+function showPayments(payments) {
+  if (!payments.length) return;
+  let total = 0;
+  document.getElementById('paymentGrid').innerHTML = payments.map(p => {
+    total += p.total_usdc||0;
+    return `<div class="payment-card">
+      <div class="payment-amount">$${(p.total_usdc||0).toFixed(6)}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">${p.total_payments||0} verified actions</div>
+      <div style="font-size:10px;color:var(--text3);font-family:monospace;margin-top:6px">${(p.wallet||'').slice(0,22)}...</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px">Base Sepolia · EIP-3009</div>
+    </div>`;
+  }).join('');
+  document.getElementById('costCounter').textContent = `$${total.toFixed(6)}`;
 }
 
 function addLog(text, cls='event') {
@@ -677,7 +727,9 @@ function setRunning(r) {
   const pill = document.getElementById('statusPill');
   const txt  = document.getElementById('statusText');
   btn.disabled = r;
-  btn.textContent = r ? 'Running...' : 'Launch AVA';
+  btn.innerHTML = r
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Running...`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polygon points="5 3 19 12 5 21 5 3"/></svg> Launch Scout`;
   dot.className  = r ? 'dot running' : 'dot';
   pill.className = r ? 'status-pill running' : 'status-pill';
   txt.textContent = r ? 'Running' : 'Ready';
@@ -685,22 +737,30 @@ function setRunning(r) {
 
 function clearAll() {
   clearAgents();
-  ['txSection','briefingSection','storyboardSection','screenshotsSection',
-   'identitySection','paymentSection','a2aSection','planPanel'].forEach(id => {
+  ['txSection','briefingSection','outreachSection','storyboardSection','screenshotsSection','planPanel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  ['storyboardGrid','screenshotsGrid','logEntries','identityGrid','paymentGrid','a2aList','planTasks'].forEach(id => {
+  ['storyboardGrid','screenshotsGrid','logEntries','planTasks'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '';
   });
-  document.getElementById('audioPlayer').style.display = 'none';
+  document.getElementById('identityGrid').innerHTML = '<div class="empty-state">No identities yet — run Scout to register agents</div>';
+  document.getElementById('a2aList').innerHTML = '<div class="empty-state">No messages yet</div>';
+  document.getElementById('paymentGrid').innerHTML = '<div class="empty-state">No payments yet</div>';
+  document.getElementById('sigLog').innerHTML = '<div class="empty-state">Signed actions appear here</div>';
   document.getElementById('costCounter').textContent = '$0.000000';
+  document.getElementById('audioEl').src = '';
+  document.getElementById('audioPlayerUI').style.display = 'none';
 }
 
 function clearAgents() {
   Object.keys(agents).forEach(k => delete agents[k]);
-  document.getElementById('agentGrid').innerHTML = '<div class="empty-state">Agents appear here when AVA launches</div>';
+  document.getElementById('agentGrid').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-dots"><span></span><span></span><span></span></div>
+      Agents appear when Scout launches
+    </div>`;
 }
 
 function toggleVoice() {
@@ -711,23 +771,15 @@ function toggleVoice() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const r = new SR();
   r.lang = 'en-US'; r.interimResults = false;
-  btn.className = 'btn btn-voice recording';
-  btn.textContent = 'Listening...';
+  btn.classList.add('recording');
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Listening...`;
   r.start();
   r.onresult = e => { document.getElementById('goalInput').value = e.results[0][0].transcript; };
-  r.onend = () => { btn.className = 'btn btn-voice'; btn.textContent = 'Voice Input'; };
+  r.onend = () => {
+    btn.classList.remove('recording');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Voice`;
+  };
 }
-
-document.getElementById('goalInput').addEventListener('dblclick', () => {
-  const ex = [
-    'Research top 3 competitors to Notion and compare their pricing and features',
-    'Find the best USDC yield across Aave, Morpho and Compound',
-    'Monitor AI compliance regulatory changes across US, EU and China',
-    'Research global DeFi infrastructure coordination opportunities',
-    'Analyze top 5 AI agent frameworks and summarize key differences',
-  ];
-  document.getElementById('goalInput').value = ex[Math.floor(Math.random()*ex.length)];
-});
 </script>
 </body>
 </html>
