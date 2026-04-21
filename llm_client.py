@@ -25,7 +25,7 @@ def chat(messages: list, model: str = "qwen3-8b", max_tokens: int = 1024) -> LLM
     t0 = time.monotonic()
     r = requests.post(f"{BASE_URL}/chat/completions", headers=HEADERS, json={
         "model": model, "messages": messages, "max_tokens": max_tokens
-    }, timeout=120)
+    }, timeout=90)
     r.raise_for_status()
     d = r.json()
     usage = d.get("usage", {})
