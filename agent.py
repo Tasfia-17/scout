@@ -150,7 +150,7 @@ class SpecialistAgent:
             d.get("body_snippet", "") for d in self.extracted_data.values()
         ).lower()
         has_data = any(kw in all_text for kw in ["apy", "apr", "%", "supply", "borrow", "yield", "rate", "usdc"])
-        return has_data or len(self.action_history) >= 5
+        return has_data or len(self.action_history) >= 4
 
     def _emit(self, cycle, url, action, result, screenshot_b64, vision_check, sig, payment, t0):
         event = AgentEvent(
