@@ -86,6 +86,50 @@ async def health():
     return {"status": "ok"}
 
 
+@app.post("/demo")
+async def demo_mode():
+    """Fire pre-cached demo events so the demo never breaks live."""
+    import asyncio
+    asyncio.create_task(_run_demo())
+    return {"status": "started"}
+
+
+async def _run_demo():
+    import asyncio
+    events = [
+        {"type": "status", "msg": "Goal: Marcus Rivera, CTO at Linear (linear.app)"},
+        {"type": "plan", "summary": "Research Linear's product, team, and competitive position", "tasks": [
+            {"id": "t1", "type": "research", "url": "https://linear.app", "objective": "Research Linear's product, pricing, and recent launches"},
+            {"id": "t2", "type": "research", "url": "https://www.google.com", "objective": "Find recent news and funding about Linear"},
+            {"id": "t3", "type": "verify",   "url": "https://www.google.com", "objective": "Research competitors: Jira, Asana, Notion and how Linear positions against them"},
+        ]},
+        {"type": "status", "msg": "Launching 3 agents with ERC-8004 identities..."},
+        {"type": "agent_event", "agent_id": "agent_t1", "cycle": 0, "url": "https://linear.app", "action": "Navigating to Linear homepage", "vision": {}, "signature": {"signer": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "verified": True}, "payment": {"nonce": "0xabc123..."}},
+        {"type": "agent_event", "agent_id": "agent_t2", "cycle": 0, "url": "https://www.google.com", "action": "Searching: Linear app funding news 2025", "vision": {}, "signature": {"signer": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "verified": True}, "payment": {"nonce": "0xdef456..."}},
+        {"type": "agent_event", "agent_id": "agent_t3", "cycle": 0, "url": "https://www.google.com", "action": "Searching: Linear vs Jira vs Asana comparison", "vision": {}, "signature": {"signer": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "verified": True}, "payment": {"nonce": "0xghi789..."}},
+        {"type": "agent_event", "agent_id": "agent_t1", "cycle": 1, "url": "https://linear.app", "action": "Extracted: Linear is a project management tool built for speed", "vision": {"success": True}, "signature": {"signer": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "verified": True}, "payment": {"nonce": "0xjkl012..."}},
+        {"type": "identities", "identities": [
+            {"address": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "nft_id": 4821, "registration": {"status": "simulated", "chain": "taiko", "chain_id": 167000}},
+            {"address": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "nft_id": 4822, "registration": {"status": "simulated", "chain": "taiko", "chain_id": 167000}},
+            {"address": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "nft_id": 4823, "registration": {"status": "simulated", "chain": "taiko", "chain_id": 167000}},
+        ]},
+        {"type": "a2a_messages", "messages": [
+            {"sender": "agent_t1", "recipient": "broadcast", "type": "finding", "content": {"url": "linear.app", "snippet": "Linear raised $35M Series B. Built for high-performance engineering teams."}, "ts": 0},
+            {"sender": "agent_t2", "recipient": "broadcast", "type": "finding", "content": {"url": "google.com", "snippet": "Linear valued at $400M. Competing directly with Jira for developer-first teams."}, "ts": 0},
+            {"sender": "agent_t3", "recipient": "agent_t1",  "type": "finding", "content": {"url": "google.com", "snippet": "Linear's key differentiator: speed and keyboard-first UX vs Jira's complexity."}, "ts": 0},
+        ]},
+        {"type": "payments", "payments": [
+            {"wallet": "0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF", "total_payments": 6, "total_usdc": 0.000006, "network": "Base Sepolia (eip155:84532)"},
+        ]},
+        {"type": "narration", "text": "Linear is a project management platform built for high-performance engineering teams, having raised $35M in Series B funding at a $400M valuation. Marcus Rivera, as CTO, is likely focused on developer tooling, engineering velocity, and reducing operational overhead. Linear's key competitive advantage over Jira is its speed and keyboard-first UX, which resonates strongly with modern engineering organizations prioritizing developer experience."},
+        {"type": "outreach", "subject": "How we help CTOs like you cut research overhead by 80%", "body": "Hi Marcus,\n\nI noticed Linear recently raised its Series B and is scaling fast — engineering velocity is clearly a priority.\n\nWe built SCOUT to give sales teams the same speed advantage Linear gives engineering teams. A prospect walks in, agents research them in 90 seconds, and your rep walks into the call already knowing what matters.\n\nWorth a 15-minute call this week?\n\nBest,\nScout"},
+        {"type": "complete", "elapsed_sec": 42},
+    ]
+    for event in events:
+        await broadcast(event)
+        await asyncio.sleep(1.2)
+
+
 @app.get("/seedance/{task_id}")
 async def seedance_poll(task_id: str):
     from video_briefing import poll_seedance
