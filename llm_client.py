@@ -101,10 +101,11 @@ def synthesize_briefing(execution_log: list, goal: str) -> str:
 
 
 def validate_screenshot(image_b64: str, expected_action: str) -> dict:
-    """Use vision model to validate a browser screenshot."""
+    """Use vision model to validate a browser screenshot and find key element coordinates."""
     resp = vision(
-        f"This is a browser screenshot. The agent was supposed to: {expected_action}\n"
-        "Describe what you see in 1 sentence. Did the action succeed? Reply: {{\"visible\": \"...\", \"success\": true/false}}",
+        f"Browser screenshot. Agent action: {expected_action}\n"
+        "Find the most relevant UI element for this action. "
+        "Reply ONLY JSON: {\"visible\": \"one sentence\", \"success\": true/false, \"x\": pixel_x, \"y\": pixel_y}",
         image_b64, model="qwen3-vl-8b", max_tokens=80
     )
     import json, re
