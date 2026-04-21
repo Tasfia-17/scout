@@ -1,213 +1,225 @@
-# AVA - Verifiable Multi-Agent Workflow Automation
+SCOUT - Verifiable Multi-Agent Sales Intelligence
 
-AVA is a multi-agent system that automates complex web workflows. You give it a goal in plain text or voice, and a swarm of AI agents executes it across the web. Every action is cryptographically signed with an on-chain identity, every API call generates a micropayment receipt, and the result is delivered as a verified briefing with a visual storyboard and spoken audio.
+SCOUT is a B2B sales intelligence system powered by a swarm of autonomous AI agents. Give it a prospect name and company URL. Within 90 seconds, a coordinated team of agents researches them across their website, public news, competitor landscape, and available signals, then delivers a spoken audio briefing, a personalized outreach email draft, and a visual storyboard of findings. Every agent action is cryptographically signed using the ERC-8004 standard and every API call generates a real micropayment receipt via the x402 protocol.
 
 Built for the Loops House Shanghai Residency 2026.
 
 
-## What it does
+THE PROBLEM
 
-You type or speak a goal. AVA decomposes it into sub-tasks, assigns each to a specialist agent, runs them in parallel, and synthesizes the results into a verified execution report.
+Sales reps spend 2-3 hours per day on prospect research before a single outreach. They stitch together LinkedIn, company websites, news alerts, CRM notes, and competitor data manually. The result is either shallow personalization (Hi {{first_name}}, I saw you work at {{company}}) or hours lost before a single email is sent.
 
-Example goals:
-- Research top 3 competitors to Notion and compare their pricing
-- Find the best USDC yield across Aave, Morpho and Compound
-- Monitor regulatory changes across US, EU and China for AI compliance
-- Research global DeFi infrastructure coordination opportunities
+Existing tools solve parts of this:
+- Clay enriches data fields but requires a specialist to operate and costs $349/month for serious use
+- Apollo and ZoomInfo give you contact databases but no intelligence
+- 11x and Artisan send emails at scale but personalization is template-based
+- HeyGen and Tavus make videos but you still have to research the prospect yourself
+
+Nobody closes the full loop: research the prospect, understand their context, generate genuinely personalized multimodal output, and do it in under 90 seconds.
+
+SCOUT closes that loop.
 
 
-## Architecture
+WHAT SCOUT DOES
 
-### Input layer
+You type or speak a prospect. SCOUT decomposes the research into parallel sub-tasks, assigns each to a specialist agent, runs them simultaneously, and synthesizes everything into a verified intelligence package.
+
+Input: "Sarah Chen, VP Sales at Notion (notion.so)"
+
+Output in 90 seconds:
+- Intelligence brief: 5 key insights about the prospect and their company
+- Outreach draft: a personalized email with a specific first line referencing real findings
+- Audio briefing: a 60-second spoken summary the rep listens to before a call
+- Visual storyboard: 4 cinematic images generated from the research narrative
+- Signed receipt: every finding cryptographically signed and auditable
+
+
+ARCHITECTURE
+
+Input Layer
 - Text input or voice via browser Web Speech API
-- Multilingual support including Chinese
+- Multilingual support including Chinese for the Shanghai market
 
-### Orchestrator
-- Decomposes the goal into 2-3 sub-tasks using qwen3-8b
-- Assigns each task to a specialist agent with a target URL and objective
-- Coordinates results and synthesizes the final briefing
+Orchestrator
+- Decomposes the prospect research goal into 2-3 parallel sub-tasks using qwen3-8b
+- Assigns each task to a specialist agent with a target URL and research objective
+- Coordinates results and synthesizes the final intelligence brief
 
-### Specialist agents
+Specialist Agents
 Each agent runs independently and in parallel:
 - Opens a real browser via Playwright
 - Extracts an ISM (Interactive State Map) from the DOM
-- Generates a GAP (Guarded Action Plan) - a validated JSON action plan
+- Generates a GAP (Guarded Action Plan): a validated JSON action plan before executing anything
 - Executes the plan step by step
-- Validates each screenshot with a vision model
+- Validates each screenshot with a vision model (qwen3-vl-8b)
 - Broadcasts findings to other agents via A2A messages
 
-### On-chain layer
+On-Chain Verification Layer
 - ERC-8004: each agent has an on-chain identity (ERC-721 NFT on Taiko L2)
-- Every action is signed with the agent wallet using EIP-712
+- Every agent action is signed with the agent wallet using EIP-712
 - x402: every agent action generates a real EIP-3009 USDC micropayment signature on Base
 - Transaction preview: real unsigned Aave V3 supply() calldata ready to sign
 
-### Output layer
-- Best result extracted and recommended
+Output Layer
+- Intelligence brief extracted and synthesized from all agent findings
+- Personalized outreach email draft generated from research context
 - 4 cinematic storyboard images generated by Flux Schnell
 - Spoken audio briefing by Orpheus TTS
 - Live dashboard showing agent screenshots, A2A messages, payment receipts, identity NFTs
 
 
-## Tech stack
+THE VERIFICATION ANGLE
 
-| Component | Technology |
-|---|---|
-| LLM orchestration | ionrouter qwen3-8b |
-| Vision validation | ionrouter qwen3-vl-8b |
-| TTS audio | ionrouter orpheus-3b |
-| Image generation | ionrouter flux-schnell |
-| Computer use vision | OpenRouter claude-sonnet-4.5 |
-| Browser automation | Playwright |
-| Action planning | GAP pipeline (adapted from adcock-agent) |
-| Agent identity | ERC-8004 on Taiko L2 |
-| Micropayments | x402 EIP-3009 on Base |
-| Agent communication | A2A protocol (Google spec) |
-| Backend | FastAPI + WebSocket |
-| Frontend | Glassmorphism HTML/CSS/JS |
+Most AI research tools are black boxes. You get an output with no way to verify what the agent actually did, what sources it used, or whether the findings are real.
 
+SCOUT makes every agent action verifiable:
 
-## Key concepts
+ERC-8004 Agent Identity
+Each agent registers an on-chain identity (ERC-721 NFT) on Taiko L2 using the ERC-8004 Trustless Agents standard. Every action the agent takes is signed with the agent wallet using EIP-712. This creates a cryptographic chain of custody for every step of the research workflow. Enterprise compliance teams can verify what the agent found, when it found it, and which agent produced it.
 
-### GAP - Guarded Action Plan
-Instead of asking an LLM to decide one action at a time, AVA generates a complete validated JSON action plan before executing anything. The plan is checked against a schema, then compiled to Playwright actions. This makes execution deterministic and auditable.
+x402 Micropayments
+Every agent action generates a real EIP-3009 USDC payment signature using the x402 protocol. The payment is gasless for the sender. This creates an immutable payment receipt for every unit of research work performed. The revenue model is pay-per-research: charge per agent action rather than a flat subscription.
 
-### ERC-8004 Agent Identity
-Each agent registers an on-chain identity (ERC-721 NFT) on Taiko L2 using the ERC-8004 standard. Every action the agent takes is signed with the agent wallet. This creates a verifiable chain of custody for every step of the workflow.
+A2A Communication
+Agents broadcast findings to each other via an in-memory A2A message bus following the Google A2A protocol structure. Research agents send findings to synthesis agents. The orchestrator reads all messages to build the final brief. Every message is logged and visible in the Network dashboard.
 
-### x402 Micropayments
-Every agent action generates a real EIP-3009 USDC payment signature using the x402 protocol. The payment is gasless for the sender - the facilitator pays gas. This is the revenue model: charge per agent action.
-
-### A2A Communication
-Agents broadcast findings to each other via an in-memory A2A message bus following the Google A2A protocol structure. Research agents send findings to execution agents. The orchestrator reads all messages to synthesize the final result.
-
-### Visual Storyboard
-After execution, AVA generates 4 cinematic images using Flux Schnell that visualize what the agents did. Combined with a spoken audio briefing from Orpheus TTS, this creates a compelling deliverable that non-technical users can understand.
+GAP Pipeline
+Instead of asking an LLM to decide one action at a time, SCOUT generates a complete validated JSON action plan before executing anything. The plan is checked against a schema, then compiled to Playwright actions. This makes execution deterministic and auditable. If something goes wrong, the exact plan that failed is logged.
 
 
-## Project structure
+MULTIMODAL OUTPUT
 
-```
-ava-agent/
-  server.py          - FastAPI server and WebSocket handler
-  orchestrator.py    - Multi-agent coordinator
-  agent.py           - Specialist agent with ERC-8004 and x402
-  browser.py         - Playwright browser controller and ISM extraction
-  gap.py             - GAP action plan generation and execution
-  llm_client.py      - ionrouter API wrapper
-  identity.py        - ERC-8004 agent identity
-  x402_client.py     - x402 EIP-3009 payment client
-  a2a_bus.py         - A2A agent-to-agent message bus
-  screen_agent.py    - Screenshot to vision to click pipeline
-  tx_builder.py      - Unsigned DeFi transaction builder
-  video_briefing.py  - Flux storyboard and Orpheus TTS
-  static/index.html  - Dashboard UI
-  requirements.txt   - Python dependencies
-  .env               - API keys (not committed)
-```
+SCOUT produces four types of output from a single research run:
+
+Text: The intelligence brief is a structured summary of findings with specific, sourced insights about the prospect. The outreach draft is a personalized email with a genuine first line that references something real about the prospect's company or role.
+
+Audio: Orpheus TTS generates a 60-second spoken briefing. Sales reps listen to it while commuting or between calls. The audio player in the Briefing tab has custom controls with a progress bar and time display.
+
+Visual: Flux Schnell generates 4 cinematic storyboard images that visualize the research narrative. These are not generic stock images. They are generated from the specific findings of each research run.
+
+Verified: The Trust tab shows every ERC-8004 identity card with NFT ID, wallet address, Taiko L2 chain ID, and registration status. The signed action log shows every action with its cryptographic signature hash and timestamp.
 
 
-## Setup
+TECH STACK
 
-### Requirements
+Component              Technology
+LLM orchestration      ionrouter qwen3-8b
+Vision validation      ionrouter qwen3-vl-8b
+TTS audio              ionrouter orpheus-3b
+Image generation       ionrouter flux-schnell
+Computer use vision    OpenRouter claude-sonnet-4.5
+Browser automation     Playwright
+Action planning        GAP pipeline
+Agent identity         ERC-8004 on Taiko L2
+Micropayments          x402 EIP-3009 on Base Sepolia
+Agent communication    A2A protocol (Google spec)
+Backend                FastAPI + WebSocket
+Frontend               4-page SPA, glassmorphism design
+
+
+PROJECT STRUCTURE
+
+scout/
+  server.py          FastAPI server and WebSocket handler
+  orchestrator.py    Multi-agent coordinator and goal decomposition
+  agent.py           Specialist agent with ERC-8004 identity and x402 payments
+  browser.py         Playwright browser controller and ISM extraction
+  gap.py             GAP action plan generation, validation, and execution
+  llm_client.py      ionrouter API wrapper for all model calls
+  identity.py        ERC-8004 agent identity and EIP-712 signing
+  x402_client.py     x402 EIP-3009 payment client
+  a2a_bus.py         A2A agent-to-agent message bus
+  screen_agent.py    Screenshot to vision to click coordinate pipeline
+  tx_builder.py      Unsigned DeFi transaction builder
+  video_briefing.py  Flux storyboard and Orpheus TTS briefing
+  static/index.html  4-page dashboard UI
+
+
+SETUP
+
+Requirements
 - Python 3.12+
 - Node.js (for Playwright browser)
 
-### Install
+Install
 
-```bash
-git clone https://github.com/Tasfia-17/ava-agent
-cd ava-agent
-pip install -r requirements.txt
-playwright install chromium
-```
+    git clone https://github.com/Tasfia-17/scout
+    cd scout
+    pip install -r requirements.txt
+    playwright install chromium
 
-### Configure
+Configure
 
-Create a `.env` file:
+Create a .env file:
 
-```
-IONROUTER_API_KEY=your_ionrouter_key
-IONROUTER_BASE_URL=https://api.ionrouter.io/v1
-OPENROUTER_API_KEY=your_openrouter_key
-WALLET_PRIVATE_KEY=0xyour_wallet_private_key
-```
+    IONROUTER_API_KEY=your_ionrouter_key
+    IONROUTER_BASE_URL=https://api.ionrouter.io/v1
+    OPENROUTER_API_KEY=your_openrouter_key
+    WALLET_PRIVATE_KEY=0xyour_wallet_private_key
 
-### Run
+Run
 
-```bash
-python3 server.py
-```
+    python3 server.py
 
 Open http://localhost:8000 in Chrome.
 
 
-## API keys used
+API KEYS
 
-| Service | Purpose |
-|---|---|
-| ionrouter.io | LLM, vision, TTS, image generation |
-| openrouter.ai | Claude computer use for element detection |
-| BytePlus ModelArk | Seedance 2.0 video generation (optional) |
-
-
-## Hackathon tracks
-
-This project targets:
-- Challenge 01: Autonomous dApp - agents research DeFi and build executable transactions
-- Challenge 02: ERC-8004 and x402 - real agent identity and micropayment receipts
-- Challenge 03: Multi-agent coordination - parallel agents with A2A communication
-- Challenge 04: Global infrastructure - multilingual, cross-border workflow automation
+Service          Purpose
+ionrouter.io     LLM, vision, TTS, image generation
+openrouter.ai    Claude computer use for element detection
+BytePlus         Seedance 2.0 video generation (optional)
 
 
-## Wallet
+HACKATHON TRACKS
+
+This project targets all four challenge tracks:
+
+Challenge 01: Autonomous dApp
+Agents autonomously research prospects and build executable DeFi transactions from findings. The tx_builder module generates real unsigned Aave V3 supply() calldata from research output.
+
+Challenge 02: ERC-8004 and x402 Infrastructure
+Every agent has an on-chain ERC-8004 identity on Taiko L2. Every action is signed with EIP-712. Every API call generates a real EIP-3009 USDC payment signature via x402 on Base Sepolia.
+
+Challenge 03: Multi-Agent Coordination
+The orchestrator decomposes goals into parallel sub-tasks. Agents run simultaneously and communicate via A2A messages. The GAP pipeline makes execution deterministic and auditable.
+
+Challenge 04: Global Coordination and Intelligent Infrastructure
+Multilingual input support including Chinese. Cross-border prospect research. The system is designed to coordinate research across global data sources in real time.
+
+
+BUSINESS MODEL
+
+SCOUT replaces:
+- Clay ($349/month) for data enrichment
+- A research assistant (2-3 hours/day) for prospect research
+- HeyGen ($29/month) for video/audio output
+- Manual email writing (30-60 minutes per prospect)
+
+Pricing: $299/seat/month
+Buyer: SDR teams, account executives, founders doing outbound
+Sales cycle: self-serve, no enterprise procurement required
+
+The x402 micropayment layer enables an alternative pay-per-research model: charge per agent action rather than a flat subscription. This aligns cost directly with usage and makes SCOUT accessible to solo founders and small teams.
+
+
+WALLET
 
 Agent wallet address: 0x7FF67D3cF058B79dC68dDf6B586D4D046dbD6eAF
+Network: Base Sepolia (chainId 84532) for x402 payments and transaction previews
+Identity registry: Taiko L2 (chainId 167000)
 
-Network: Base Sepolia (chainId 84532) for x402 payments and transaction previews.
+
+HEALTH CHECK
+
+    curl http://localhost:8000/health
+
+Expected: {"status": "ok"}
 
 
-## Credits
+PREVIOUS WORK
 
 Built on top of:
-- adcock-agent by neelsomani - GAP pipeline and browser automation patterns
-- clicky by farzaa - screen capture and voice pipeline patterns
-- ava-trading-esp32 - ESP32 voice agent architecture
-
-
-## Health check
-
-Once running, verify the server is up:
-
-```bash
-curl http://localhost:8000/health
-```
-
-Expected response: {"status": "ok"}
-
-
-## x402 payment flow
-
-Each agent action generates a real EIP-3009 USDC payment signature. The flow:
-
-1. Agent calls build_payment_payload() with the target URL
-2. EIP-3009 transferWithAuthorization is signed with the agent wallet
-3. The signed payload is formatted as a PAYMENT-SIGNATURE header
-4. Receipt is logged and shown on the dashboard
-
-The payment is gasless for the sender. The x402 facilitator at x402.org handles settlement.
-
-
-## Running in production
-
-For a persistent server, use:
-
-```bash
-nohup python3 server.py > ava.log 2>&1 &
-```
-
-Or with uvicorn directly:
-
-```bash
-uvicorn server:app --host 0.0.0.0 --port 8000 --workers 1
-```
+- adcock-agent by neelsomani: GAP pipeline and browser automation patterns
+- clicky by farzaa: screen capture and voice pipeline patterns
