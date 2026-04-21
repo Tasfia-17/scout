@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVA — Verifiable Multi-Agent Workflow Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f4ff;
+  --bg2: #e8eeff;
+  --glass: rgba(255,255,255,0.55);
+  --glass2: rgba(255,255,255,0.35);
+  --border: rgba(255,255,255,0.7);
+  --border2: rgba(180,190,255,0.3);
+  --text: #2d3561;
+  --text2: #6b7ab8;
+  --text3: #9aa3d4;
+  --accent: #7c6ff7;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --blue: #60a5fa;
+  --shadow: 0 8px 32px rgba(100,100,200,0.12);
+  --shadow2: 0 2px 12px rgba(100,100,200,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(167,139,250,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(96,165,250,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 60% 10%, rgba(244,114,182,0.10) 0%, transparent 50%);
+  min-height: 100vh;
+  color: var(--text);
+}
+
+/* Glass mixin */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.glass2 {
+  background: var(--glass2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border2);
+  box-shadow: var(--shadow2);
+}
+
+/* Header */
+header {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #7c6ff7, #a78bfa);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; box-shadow: 0 4px 12px rgba(124,111,247,0.35);
+}
+.logo { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+.logo span { color: var(--accent); }
+.tagline { color: var(--text3); font-size: 12px; font-weight: 400; }
+
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3);
+  border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #059669; font-weight: 500;
+}
+.status-pill.running { background: rgba(251,146,60,0.12); border-color: rgba(251,146,60,0.3); color: #ea580c; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; }
+.status-dot.running { background: #fb923c; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* Layout */
+.main { display: grid; grid-template-columns: 1fr 360px; height: calc(100vh - 69px); }
+.left { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+.right { border-left: 1px solid var(--border2); display: flex; flex-direction: column; overflow: hidden; }
+
+/* Cards */
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--text3); margin-bottom: 14px;
+}
+
+/* Input */
+.goal-input {
+  width: 100%;
+  background: rgba(255,255,255,0.6);
+  border: 1.5px solid rgba(124,111,247,0.2);
+  border-radius: 14px;
+  color: var(--text);
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  resize: none;
+  height: 80px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.goal-input:focus {
+  border-color: rgba(124,111,247,0.5);
+  box-shadow: 0 0 0 3px rgba(124,111,247,0.1);
+}
+.goal-input::placeholder { color: var(--text3); }
+
+/* Jelly buttons */
+.btn {
+  padding: 11px 22px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+.btn:active { transform: scale(0.95); }
+
+.btn-primary {
+  background: linear-gradient(135deg, #7c6ff7, #a78bfa);
+  color: white;
+  box-shadow: 0 4px 16px rgba(124,111,247,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,111,247,0.45); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-glass {
+  background: rgba(255,255,255,0.5);
+  color: var(--text2);
+  border: 1.5px solid rgba(124,111,247,0.2);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(100,100,200,0.08), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.btn-glass:hover { background: rgba(255,255,255,0.7); transform: translateY(-1px); }
+
+.btn-voice {
+  background: rgba(244,114,182,0.1);
+  color: #db2777;
+  border: 1.5px solid rgba(244,114,182,0.25);
+  backdrop-filter: blur(8px);
+}
+.btn-voice:hover { background: rgba(244,114,182,0.18); transform: translateY(-1px); }
+.btn-voice.recording {
+  background: rgba(244,114,182,0.2);
+  border-color: rgba(244,114,182,0.5);
+  animation: pulse 1s infinite;
+}
+
+.btn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+
+/* Agent cards */
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+
+.agent-card {
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255,255,255,0.7);
+  border-radius: 16px;
+  padding: 14px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(100,100,200,0.08);
+}
+.agent-card.active {
+  border-color: rgba(124,111,247,0.4);
+  box-shadow: 0 4px 20px rgba(124,111,247,0.15);
+  background: rgba(255,255,255,0.6);
+}
+.agent-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.agent-badge {
+  padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-left: auto;
+}
+.badge-research { background: rgba(96,165,250,0.15); color: #2563eb; }
+.badge-verify { background: rgba(52,211,153,0.15); color: #059669; }
+.badge-execute { background: rgba(251,146,60,0.15); color: #ea580c; }
+.agent-name { font-size: 13px; font-weight: 600; color: var(--accent); }
+.agent-url { font-size: 11px; color: var(--text3); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agent-action { font-size: 12px; color: var(--text2); line-height: 1.4; }
+.agent-screenshot { width: 100%; border-radius: 10px; margin-top: 8px; border: 1px solid var(--border2); }
+
+/* Section title */
+.section-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--text3); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Briefing card */
+.briefing-card {
+  background: linear-gradient(135deg, rgba(124,111,247,0.08), rgba(167,139,250,0.05));
+  border: 1.5px solid rgba(124,111,247,0.2);
+  border-radius: 20px;
+  padding: 20px;
+  backdrop-filter: blur(16px);
+}
+.narration-text { font-size: 15px; line-height: 1.75; color: var(--text); font-weight: 400; }
+audio { width: 100%; margin-top: 14px; border-radius: 12px; }
+
+/* Screenshots / storyboard grid */
+.media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.media-grid img {
+  width: 100%; border-radius: 12px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow2);
+}
+.media-grid img:hover { transform: scale(1.04); box-shadow: var(--shadow); }
+
+/* Transaction card */
+.tx-card {
+  background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(96,165,250,0.05));
+  border: 1.5px solid rgba(52,211,153,0.25);
+  border-radius: 20px;
+  padding: 20px;
+  backdrop-filter: blur(16px);
+}
+.tx-apy { font-size: 32px; font-weight: 700; color: #059669; letter-spacing: -1px; }
+.tx-step {
+  background: rgba(255,255,255,0.5);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.tx-step-num { color: var(--green); font-weight: 600; margin-right: 6px; }
+
+/* Identity / payment pills */
+.identity-pill {
+  background: rgba(124,111,247,0.08);
+  border: 1.5px solid rgba(124,111,247,0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.payment-pill {
+  background: rgba(251,146,60,0.08);
+  border: 1.5px solid rgba(251,146,60,0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 12px;
+}
+
+/* Right panel */
+.plan-panel { padding: 16px; border-bottom: 1px solid var(--border2); }
+.plan-panel h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 10px; }
+.task-item {
+  background: rgba(255,255,255,0.4);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.task-type { font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--accent); }
+.task-obj { color: var(--text2); margin-top: 2px; }
+
+.log-panel { flex: 1; overflow-y: auto; padding: 16px; background: rgba(255,255,255,0.2); }
+.log-panel h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 10px; position: sticky; top: 0; background: rgba(240,244,255,0.8); backdrop-filter: blur(8px); padding-bottom: 8px; }
+.log-entry { font-size: 11px; color: var(--text3); padding: 4px 0; border-bottom: 1px solid rgba(180,190,255,0.1); line-height: 1.5; }
+.log-entry .ts { color: rgba(180,190,255,0.5); margin-right: 6px; }
+.log-entry.event-status { color: var(--accent); }
+.log-entry.event-plan { color: #7c3aed; }
+.log-entry.event-complete { color: #059669; }
+.log-entry.event-error { color: #dc2626; }
+
+/* A2A messages */
+.a2a-msg {
+  background: rgba(255,255,255,0.35);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124,111,247,0.2); border-radius: 4px; }
+
+/* Empty state */
+.empty-state { color: var(--text3); font-size: 13px; text-align: center; padding: 24px; }
+
+/* Chip tags */
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(124,111,247,0.1); border: 1px solid rgba(124,111,247,0.2);
+  border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 500; color: var(--accent);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">✦</div>
+    <div>
+      <div class="logo">A<span>VA</span></div>
+      <div class="tagline">Verifiable Multi-Agent Workflow Automation · ERC-8004 · x402 · A2A</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div style="text-align:right;margin-right:8px">
+      <div style="font-size:11px;color:var(--text3)">x402 Cost This Run</div>
+      <div style="font-size:16px;font-weight:700;color:var(--accent)" id="costCounter">$0.000000</div>
+    </div>
+    <div class="status-pill" id="statusPill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Ready</span>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT COLUMN -->
+  <div class="left">
+
+    <!-- Goal Input -->
+    <div class="card">
+      <div class="card-title">✦ Workflow Goal</div>
+      <textarea class="goal-input" id="goalInput"
+        placeholder="e.g. Research top 3 competitors to Notion and compare their pricing&#10;e.g. Monitor regulatory changes across US, EU and China for AI compliance&#10;e.g. 研究全球DeFi基础设施协调机会，找出最优收益策略&#10;Double-click for examples"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="runBtn" onclick="runGoal()">▶ Launch AVA</button>
+        <button class="btn btn-voice" id="voiceBtn" onclick="toggleVoice()">🎤 Voice</button>
+        <button class="btn btn-glass" onclick="clearAll()">✕ Clear</button>
+      </div>
+    </div>
+
+    <!-- Transaction Preview -->
+    <div id="txSection" style="display:none">
+      <div class="tx-card">
+      <div class="card-title">✦ Recommended Action</div>
+        <div id="txContent"></div>
+      </div>
+    </div>
+
+    <!-- Agents -->
+    <div>
+      <div class="section-title">🤖 Active Agents</div>
+      <div class="agent-grid" id="agentGrid">
+        <div class="empty-state">Agents appear here when AVA launches</div>
+      </div>
+    </div>
+
+    <!-- Briefing -->
+    <div id="briefingSection" style="display:none">
+      <div class="briefing-card">
+        <div class="section-title">📋 AVA Briefing</div>
+        <div class="narration-text" id="narrationText"></div>
+        <audio id="audioPlayer" controls style="display:none"></audio>
+      </div>
+    </div>
+
+    <!-- Storyboard -->
+    <div id="storyboardSection" style="display:none">
+      <div class="section-title">🎬 Visual Storyboard</div>
+      <div class="media-grid" id="storyboardGrid"></div>
+    </div>
+
+    <!-- Screenshots -->
+    <div id="screenshotsSection" style="display:none">
+      <div class="section-title">📸 Agent Screenshots</div>
+      <div class="media-grid" id="screenshotsGrid"></div>
+    </div>
+
+    <!-- Identity + Payments row -->
+    <div id="identitySection" style="display:none">
+      <div class="section-title">🪪 ERC-8004 Identities · Taiko L2</div>
+      <div class="agent-grid" id="identityGrid"></div>
+    </div>
+
+    <div id="paymentSection" style="display:none">
+      <div class="section-title">💳 x402 Payment Receipts · Base</div>
+      <div class="agent-grid" id="paymentGrid"></div>
+    </div>
+
+    <!-- A2A -->
+    <div id="a2aSection" style="display:none">
+      <div class="section-title">📡 A2A Agent Messages</div>
+      <div id="a2aList"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right">
+    <div class="plan-panel" id="planPanel" style="display:none">
+      <h3>📋 Execution Plan</h3>
+      <div id="planTasks"></div>
+    </div>
+    <div class="log-panel">
+      <h3>📡 Live Feed</h3>
+      <div id="logEntries"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ws = new WebSocket(`ws://${location.host}/ws`);
+const agents = {};
+
+ws.onmessage = e => handleMessage(JSON.parse(e.data));
+ws.onopen = () => addLog('AVA connected', 'status');
+ws.onclose = () => addLog('Disconnected', 'error');
+
+function handleMessage(msg) {
+  const t = msg.type;
+  if (t === 'status') { addLog(msg.msg, 'status'); if (msg.msg.includes('Launching')) setRunning(true); }
+  else if (t === 'plan') { showPlan(msg.tasks, msg.summary); addLog(`Plan: ${msg.summary}`, 'plan'); }
+  else if (t === 'agent_event') { updateAgent(msg); addLog(`[${msg.agent_id}] ${msg.action.slice(0,55)}`, 'event'); }
+  else if (t === 'transaction') { showTransaction(msg.best_yield, msg.tx); addLog(`⚡ Best yield: ${msg.best_yield.protocol} ${msg.best_yield.apy}`, 'complete'); }
+  else if (t === 'a2a_messages') { showA2A(msg.messages); }
+  else if (t === 'identities') { showIdentities(msg.identities); }
+  else if (t === 'payments') { showPayments(msg.payments); }
+  else if (t === 'narration') { showBriefing(msg.text); }
+  else if (t === 'audio') { playAudio(msg.b64); }
+  else if (t === 'storyboard_frame') { addStoryboardFrame(msg.b64, msg.index, msg.prompt); }
+  else if (t === 'screenshot') { addScreenshot(msg.b64, msg.index); const k = Object.keys(agents)[msg.index]; if(k) updateAgentScreenshot(k, msg.b64); }
+  else if (t === 'complete') { setRunning(false); addLog(`✅ Done in ${msg.elapsed_sec}s`, 'complete'); }
+  else if (t === 'error') { addLog(`Error: ${msg.msg}`, 'error'); setRunning(false); }
+}
+
+function runGoal() {
+  const goal = document.getElementById('goalInput').value.trim();
+  if (!goal) return;
+  clearAgents();
+  ws.send(JSON.stringify({type:'run', goal}));
+  setRunning(true);
+  addLog(`Goal: ${goal}`, 'status');
+}
+
+function showPlan(tasks, summary) {
+  const panel = document.getElementById('planPanel');
+  panel.style.display = 'block';
+  document.getElementById('planTasks').innerHTML = tasks.map(t => `
+    <div class="task-item">
+      <div class="task-type">${t.type}</div>
+      <div class="task-obj">${t.objective.slice(0,70)}</div>
+    </div>`).join('');
+  const grid = document.getElementById('agentGrid');
+  grid.innerHTML = '';
+  tasks.forEach(t => {
+    agents[`agent_${t.id}`] = t;
+    const badgeClass = t.type === 'research' ? 'badge-research' : t.type === 'verify' ? 'badge-verify' : 'badge-execute';
+    grid.innerHTML += `
+      <div class="agent-card" id="card_agent_${t.id}">
+        <div class="agent-header">
+          <span style="font-size:16px">${t.type==='research'?'🔍':t.type==='verify'?'✅':'⚡'}</span>
+          <span class="agent-name">agent_${t.id}</span>
+          <span class="agent-badge ${badgeClass}">${t.type}</span>
+        </div>
+        <div class="agent-url" id="url_agent_${t.id}">${t.url}</div>
+        <div class="agent-action" id="action_agent_${t.id}">Initializing...</div>
+      </div>`;
+  });
+}
+
+function updateAgent(msg) {
+  const card = document.getElementById(`card_${msg.agent_id}`);
+  if (!card) return;
+  card.classList.add('active');
+  const u = document.getElementById(`url_${msg.agent_id}`);
+  const a = document.getElementById(`action_${msg.agent_id}`);
+  if (u) u.textContent = msg.url;
+  if (a) a.textContent = `[${msg.cycle}] ${msg.action.slice(0,70)}`;
+}
+
+function updateAgentScreenshot(agentId, b64) {
+  const card = document.getElementById(`card_${agentId}`);
+  if (!card) return;
+  let img = card.querySelector('.agent-screenshot');
+  if (!img) { img = document.createElement('img'); img.className = 'agent-screenshot'; card.appendChild(img); }
+  img.src = `data:image/png;base64,${b64}`;
+}
+
+function showTransaction(bestYield, tx) {
+  document.getElementById('txSection').style.display = 'block';
+  const steps = (tx.steps||[]).map(s => `
+    <div class="tx-step">
+      <span class="tx-step-num">Step ${s.step}</span>${s.description}
+      <div style="color:var(--text3);font-size:10px;margin-top:3px;font-family:monospace">${s.to}</div>
+    </div>`).join('');
+  document.getElementById('txContent').innerHTML = `
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:14px">
+      <div class="tx-apy">${bestYield.apy||'?'}</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--text)">${bestYield.protocol||'?'} · ${bestYield.asset||'USDC'}</div>
+        <div style="font-size:11px;color:var(--text3)">Confidence: ${bestYield.confidence||'?'} · ${tx.chain||'Base Mainnet'}</div>
+      </div>
+    </div>
+    ${steps}
+    <div style="color:var(--orange);font-size:11px;margin-top:10px;display:flex;align-items:center;gap:4px">
+      ⚠️ ${tx.note||'Connect wallet to sign & execute'}
+    </div>`;
+}
+
+function showA2A(messages) {
+  if (!messages.length) return;
+  document.getElementById('a2aSection').style.display = 'block';
+  document.getElementById('a2aList').innerHTML = messages.slice(-8).map(m => `
+    <div class="a2a-msg">
+      <span style="color:var(--accent);font-weight:600">${m.sender}</span>
+      <span style="color:var(--text3)"> → </span>
+      <span style="color:#7c3aed;font-weight:600">${m.recipient}</span>
+      <span style="color:var(--text3)"> [${m.type}]</span>
+      <div style="color:var(--text2);margin-top:3px">${JSON.stringify(m.content).slice(0,80)}...</div>
+    </div>`).join('');
+}
+
+function showIdentities(identities) {
+  if (!identities.length) return;
+  document.getElementById('identitySection').style.display = 'block';
+  document.getElementById('identityGrid').innerHTML = identities.map(id => `
+    <div class="identity-pill">
+      <div style="font-weight:600;color:var(--accent);margin-bottom:4px">🪪 NFT #${id.nft_id||'?'}</div>
+      <div style="color:var(--text3);font-size:10px;font-family:monospace">${(id.address||'').slice(0,22)}...</div>
+      <div style="color:var(--text3);font-size:10px;margin-top:2px">Taiko L2 · ${id.registration?.status||'simulated'}</div>
+    </div>`).join('');
+}
+
+function showPayments(payments) {
+  if (!payments.length) return;
+  document.getElementById('paymentSection').style.display = 'block';
+  let totalCost = 0;
+  document.getElementById('paymentGrid').innerHTML = payments.map(p => {
+    totalCost += p.total_usdc || 0;
+    return `
+    <div class="payment-pill">
+      <div style="font-weight:600;color:var(--orange);margin-bottom:4px">💳 ${p.total_payments||0} verified actions</div>
+      <div style="color:var(--text3);font-size:10px;font-family:monospace">${(p.wallet||'').slice(0,22)}...</div>
+      <div style="color:var(--text2);font-size:11px;margin-top:4px">$${(p.total_usdc||0).toFixed(6)} USDC · Base Mainnet</div>
+      <div style="color:var(--text3);font-size:10px;margin-top:2px">EIP-3009 gasless · x402 protocol</div>
+    </div>`;
+  }).join('');
+  // Update cost counter
+  document.getElementById('costCounter').textContent = `$${totalCost.toFixed(6)}`;
+}
+
+function showBriefing(text) {
+  document.getElementById('briefingSection').style.display = 'block';
+  document.getElementById('narrationText').textContent = text;
+}
+
+function playAudio(b64) {
+  const p = document.getElementById('audioPlayer');
+  p.style.display = 'block';
+  p.src = `data:audio/mp3;base64,${b64}`;
+  p.play().catch(()=>{});
+}
+
+function addStoryboardFrame(b64, index, prompt) {
+  document.getElementById('storyboardSection').style.display = 'block';
+  const img = document.createElement('img');
+  img.src = `data:image/png;base64,${b64}`;
+  img.title = prompt;
+  img.onclick = () => window.open(img.src, '_blank');
+  document.getElementById('storyboardGrid').appendChild(img);
+  addLog(`🎨 Storyboard frame ${index+1}`, 'complete');
+}
+
+function addScreenshot(b64, index) {
+  document.getElementById('screenshotsSection').style.display = 'block';
+  const img = document.createElement('img');
+  img.src = `data:image/png;base64,${b64}`;
+  img.onclick = () => window.open(img.src, '_blank');
+  document.getElementById('screenshotsGrid').appendChild(img);
+}
+
+function addLog(text, cls='event') {
+  const c = document.getElementById('logEntries');
+  const ts = new Date().toLocaleTimeString();
+  const d = document.createElement('div');
+  d.className = `log-entry event-${cls}`;
+  d.innerHTML = `<span class="ts">${ts}</span>${text}`;
+  c.insertBefore(d, c.firstChild);
+  if (c.children.length > 80) c.removeChild(c.lastChild);
+}
+
+function setRunning(r) {
+  const btn = document.getElementById('runBtn');
+  const dot = document.getElementById('statusDot');
+  const pill = document.getElementById('statusPill');
+  const txt = document.getElementById('statusText');
+  btn.disabled = r;
+  btn.textContent = r ? '⏳ Running...' : '▶ Launch AVA';
+  dot.className = r ? 'status-dot running' : 'status-dot';
+  pill.className = r ? 'status-pill running' : 'status-pill';
+  txt.textContent = r ? 'Running' : 'Ready';
+}
+
+function clearAll() {
+  clearAgents();
+  ['txSection','briefingSection','storyboardSection','screenshotsSection',
+   'identitySection','paymentSection','a2aSection','planPanel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  ['storyboardGrid','screenshotsGrid','logEntries','identityGrid','paymentGrid','a2aList','planTasks'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  document.getElementById('audioPlayer').style.display = 'none';
+}
+
+function clearAgents() {
+  Object.keys(agents).forEach(k => delete agents[k]);
+  document.getElementById('agentGrid').innerHTML = '<div class="empty-state">Agents appear here when AVA launches</div>';
+}
+
+// Voice input
+function toggleVoice() {
+  const btn = document.getElementById('voiceBtn');
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    addLog('Voice requires Chrome', 'error'); return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const r = new SR();
+  r.lang = 'en-US'; r.interimResults = false;
+  btn.className = 'btn btn-voice recording';
+  btn.textContent = '🔴 Listening...';
+  r.start();
+  r.onresult = e => { document.getElementById('goalInput').value = e.results[0][0].transcript; };
+  r.onend = () => { btn.className = 'btn btn-voice'; btn.textContent = '🎤 Voice'; };
+}
+
+// Example goals on double-click
+document.getElementById('goalInput').addEventListener('dblclick', () => {
+  const ex = [
+    'Research top 3 competitors to Notion and compare their pricing and features',
+    'Monitor AI compliance regulatory changes across US, EU and China',
+    '研究全球DeFi基础设施协调机会，找出最优收益策略',
+    'Find the best USDC yield across Aave, Morpho and Compound',
+    'Analyze top 5 AI agent frameworks and summarize their key differences',
+    '分析中国企业出海面临的合规挑战，提供解决方案建议',
+  ];
+  document.getElementById('goalInput').value = ex[Math.floor(Math.random()*ex.length)];
+});
+</script>
+</body>
+</html>
