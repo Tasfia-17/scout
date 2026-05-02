@@ -4,7 +4,6 @@
 
 SCOUT deploys a coordinated swarm of autonomous AI agents to research any goal in under 90 seconds. Give it a sales prospect, a DeFi yield opportunity, a competitor, or any research target — it decomposes the task into parallel sub-tasks, runs specialist agents simultaneously, and returns a spoken audio briefing, a personalized output, and a visual storyboard of findings. Every agent action is cryptographically signed on-chain using the ERC-8004 Trustless Agents standard, and every API call generates a real micropayment receipt via the x402 protocol.
 
-Built for the Loops House Shanghai Residency 2026.
 
 ---
 
@@ -276,21 +275,19 @@ curl http://localhost:8000/health
 
 ---
 
-## 12. Hackathon Tracks
-
-### Challenge 01: Autonomous dApp
+##
 
 SCOUT agents autonomously navigate DeFi protocols (Aave, Morpho, DeFiLlama) to research yield opportunities. The `tx_builder` module generates real unsigned Aave V3 `supply()` calldata from research findings. The result is a complete research-to-execution pipeline: agents find the best yield, build the transaction, and present it ready to sign. No manual steps between research and on-chain action.
 
-### Challenge 02: ERC-8004 and x402 Infrastructure
+### 
 
 Every SCOUT agent has an on-chain ERC-8004 identity on Taiko L2. Every action is signed with EIP-712 structured data. Every API call generates a real EIP-3009 USDC payment signature via x402 on Base Sepolia. The Trust tab shows the full identity registry. The Network tab shows the payment receipt log. This is verifiable intelligence: every finding has a cryptographic proof of origin.
 
-### Challenge 03: Multi-Agent Coordination and System Automation
+### 
 
 The orchestrator decomposes goals into parallel sub-tasks. Specialist agents run simultaneously and communicate findings via A2A messages. The GAP pipeline makes every execution step deterministic and auditable. The system handles goal detection (sales research vs DeFi vs general workflow) and selects appropriate task templates automatically.
 
-### Challenge 04: Global Coordination and Intelligent Infrastructure
+### 
 
 Multilingual input support including Chinese. Cross-border prospect research across global data sources. The audio briefing and visual storyboard make findings accessible to non-technical stakeholders across language barriers.
 
