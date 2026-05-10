@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import llm_client
+import elevenlabs_client
+import filecoin_client
 from agent import SpecialistAgent, AgentEvent
 from video_briefing import generate_briefing
 from a2a_bus import BUS, A2AMessage
@@ -148,12 +150,15 @@ class AVAOrchestrator:
         score = llm_client.score_prospect(narration, goal)
         self.on_update({"type": "score", "score": score})
 
-        # Cold call script + audio
+        # Cold call script + audio (ElevenLabs TTS, fallback to ionrouter)
         self.on_update({"type": "status", "msg": "Generating cold call script..."})
         call_script = llm_client.generate_call_script(narration, goal)
         self.on_update({"type": "call_script", "text": call_script})
         try:
-            call_audio = llm_client.tts(call_script)
+            try:
+                call_audio = elevenlabs_client.tts(call_script)
+            except Exception:
+                call_audio = llm_client.tts(call_script)
             import base64
             self.on_update({"type": "call_audio", "b64": base64.b64encode(call_audio).decode()})
         except Exception:
@@ -181,6 +186,15 @@ class AVAOrchestrator:
             "total_events": len(self.events),
             "elapsed_sec": elapsed,
         }
+
+        # Pin research report to Filecoin
+        self.on_update({"type": "status", "msg": "Pinning research report to Filecoin..."})
+        pin = await asyncio.to_thread(filecoin_client.pin_report, {
+            "goal": goal, "narration": narration,
+            "identities": self.all_identities, "elapsed_sec": elapsed,
+        })
+        self.on_update({"type": "filecoin_pin", **pin})
+
         self.on_update({"type": "complete", "elapsed_sec": elapsed, "narration": narration})
         return result
 

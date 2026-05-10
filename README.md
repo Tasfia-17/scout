@@ -172,7 +172,8 @@ A2A message bubbles showing agent-to-agent communication in real time. x402 paym
 |---|---|---|
 | LLM Orchestration | ionrouter qwen3-8b | Goal decomposition, briefing synthesis, outreach generation |
 | Vision Validation | ionrouter qwen3-vl-8b | Screenshot analysis and click coordinate detection |
-| Text-to-Speech | ionrouter orpheus-3b | 60-second spoken audio briefing |
+| Text-to-Speech | ElevenLabs / ionrouter orpheus-3b | 60-second spoken audio briefing (ElevenLabs primary, orpheus fallback) |
+| Conversational AI | ElevenLabs Conversational AI | Real-time voice chat with SCOUT via "Ask SCOUT" button |
 | Image Generation | ionrouter flux-schnell | 4-frame visual storyboard |
 | Computer Use Vision | OpenRouter claude-sonnet-4.5 | Element detection for browser automation |
 | Browser Automation | Playwright (Chromium) | Real browser execution and DOM extraction |
@@ -180,6 +181,7 @@ A2A message bubbles showing agent-to-agent communication in real time. x402 paym
 | Agent Identity | ERC-8004 on Taiko L2 | On-chain agent registration and EIP-712 signing |
 | Micropayments | x402 EIP-3009 on Base Sepolia | Per-action USDC payment receipts |
 | Agent Communication | Google A2A Protocol | Inter-agent message passing and broadcast |
+| Research Storage | Filecoin Pin | Every research report pinned to Filecoin with daily PDP cryptographic proofs |
 | Backend Framework | FastAPI + WebSocket | Real-time event streaming to dashboard |
 | Frontend | Vanilla JS SPA | Four-page glassmorphism dashboard |
 | Language | Python 3.12 | All backend modules |
@@ -196,6 +198,8 @@ scout/
   browser.py           Playwright browser controller and ISM extraction
   gap.py               GAP action plan generation, schema validation, and Playwright compilation
   llm_client.py        ionrouter API wrapper: chat, vision, TTS, image, outreach generation
+  elevenlabs_client.py ElevenLabs TTS + Conversational AI agent
+  filecoin_client.py   Filecoin Pin client — pins research reports with PDP proofs
   identity.py          ERC-8004 agent identity registration and EIP-712 action signing
   x402_client.py       x402 EIP-3009 USDC micropayment client
   a2a_bus.py           In-memory A2A agent-to-agent message bus
@@ -241,6 +245,8 @@ cp .env.example .env
 | `IONROUTER_BASE_URL` | `https://api.ionrouter.io/v1` |
 | `OPENROUTER_API_KEY` | API key from openrouter.ai (Claude computer use) |
 | `WALLET_PRIVATE_KEY` | Ethereum private key for ERC-8004 signing and x402 payments |
+| `ELEVENLABS_API_KEY` | API key from elevenlabs.io (TTS + Conversational AI) |
+| `FILECOIN_PRIVATE_KEY` | MetaMask private key (hex) for Filecoin Pin storage payments |
 
 The wallet does not need ETH or USDC to run. If the wallet has no balance on Taiko L2, ERC-8004 registration falls back to a simulated mode that demonstrates the full data structure. If the wallet has no USDC on Base Sepolia, x402 payment signatures are still generated and logged as receipts.
 
@@ -290,6 +296,20 @@ The orchestrator decomposes goals into parallel sub-tasks. Specialist agents run
 ### 
 
 Multilingual input support including Chinese. Cross-border prospect research across global data sources. The audio briefing and visual storyboard make findings accessible to non-technical stakeholders across language barriers.
+
+### ElevenLabs
+
+Every SCOUT research run generates a spoken audio briefing using ElevenLabs TTS (Rachel voice, `eleven_turbo_v2_5`). The "Ask SCOUT" button in the dashboard launches an ElevenLabs Conversational AI agent — a real-time voice session where users can ask follow-up questions about any prospect or research target hands-free. Falls back to ionrouter orpheus-3b TTS if no ElevenLabs key is set.
+
+### Filecoin
+
+Every completed research report is pinned to Filecoin mainnet via [Filecoin Pin](https://docs.filecoin.io/builder-cookbook/filecoin-pin). The full JSON report — goal, narration, agent identities, and elapsed time — is stored with daily PDP (Proof of Data Possession) cryptographic proofs. The CID and IPFS gateway link are shown in the dashboard after each run. This makes every SCOUT research output verifiably persistent and retrievable via standard IPFS tooling. Falls back to a simulated CID for demo mode when no `FILECOIN_PRIVATE_KEY` is set.
+
+**Filecoin setup:**
+```bash
+npm install -g filecoin-pin
+filecoin-pin payments setup   # requires FIL + USDFC in MetaMask wallet
+```
 
 ---
 

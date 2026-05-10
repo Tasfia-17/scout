@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from orchestrator import AVAOrchestrator
+import elevenlabs_client
 
 app = FastAPI(title="SCOUT — AI Sales Intelligence")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -92,6 +93,19 @@ async def index():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.post("/convai/start")
+async def convai_start():
+    """Start an ElevenLabs Conversational AI session. Returns signed WebSocket URL."""
+    result = elevenlabs_client.start_convai(
+        "You are SCOUT, an AI sales intelligence assistant. "
+        "You research prospects, summarize company news, and help craft outreach. "
+        "Be concise and data-driven. When asked about a prospect, ask for their name, company, and role."
+    )
+    if "error" in result:
+        return {"status": "unavailable", "note": result["error"]}
+    return {"status": "ready", **result}
 
 
 async def _start_autonomous():
@@ -177,6 +191,12 @@ async def _run_demo():
         {"type": "outreach", "subject": "How we help CTOs like you cut research overhead by 80%", "body": "Hi Marcus,\n\nI noticed Linear recently raised its Series B and is scaling fast — engineering velocity is clearly a priority.\n\nWe built SCOUT to give sales teams the same speed advantage Linear gives engineering teams. A prospect walks in, agents research them in 90 seconds, and your rep walks into the call already knowing what matters.\n\nWorth a 15-minute call this week?\n\nBest,\nScout"},
         {"type": "score", "score": {"company_growth": 88, "budget_signal": 72, "pain_match": 85, "timing": 78, "tech_fit": 90, "summary": "High-growth Series B company with clear engineering velocity focus — strong fit for productivity tooling."}},
         {"type": "call_script", "text": "Hi Marcus, I saw Linear just closed its Series B — congrats on the growth.\n\nI'm calling because we built something that gives sales teams the same speed advantage Linear gives engineering teams. Our agents research any prospect in 90 seconds and deliver a spoken briefing before the call.\n\nI know you're probably thinking — another sales tool. But this one actually replaces Clay and a research assistant entirely.\n\nWould 15 minutes this week make sense to show you a live run?"},
+        {"type": "status", "msg": "Pinning research report to Filecoin..."},
+        {"type": "filecoin_pin", "status": "simulated",
+         "cid": "bafybeif7k2d3m7n8p9q1r2s3t4u5v6w7x8y9z0a1b2c3d4e5f6g7h8i9j0k1l2",
+         "gateway_url": "https://dweb.link/ipfs/bafybeif7k2d3m7n8p9q1r2s3t4u5v6w7x8y9z0a1b2c3d4e5f6g7h8i9j0k1l2",
+         "network": "filecoin-mainnet",
+         "note": "Set FILECOIN_PRIVATE_KEY + install filecoin-pin CLI to pin for real"},
         {"type": "complete", "elapsed_sec": 42},
     ]
     for event in events:
