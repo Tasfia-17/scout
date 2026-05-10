@@ -154,13 +154,22 @@ class AVAOrchestrator:
         self.on_update({"type": "status", "msg": "Generating cold call script..."})
         call_script = llm_client.generate_call_script(narration, goal)
         self.on_update({"type": "call_script", "text": call_script})
+        call_audio_bytes = None
         try:
             try:
-                call_audio = elevenlabs_client.tts(call_script)
+                call_audio_bytes = elevenlabs_client.tts(call_script)
             except Exception:
-                call_audio = llm_client.tts(call_script)
+                call_audio_bytes = llm_client.tts(call_script)
             import base64
-            self.on_update({"type": "call_audio", "b64": base64.b64encode(call_audio).decode()})
+            self.on_update({"type": "call_audio", "b64": base64.b64encode(call_audio_bytes).decode()})
+        except Exception:
+            pass
+
+        # ElevenLabs sound effect — "intel received" chime on completion
+        try:
+            sfx = elevenlabs_client.sound_effect("subtle futuristic chime, intelligence briefing complete, soft tech notification", 2.0)
+            import base64
+            self.on_update({"type": "sound_effect", "b64": base64.b64encode(sfx).decode()})
         except Exception:
             pass
 
@@ -187,13 +196,18 @@ class AVAOrchestrator:
             "elapsed_sec": elapsed,
         }
 
-        # Pin research report to Filecoin
+        # Pin research report + agent identities to Filecoin
         self.on_update({"type": "status", "msg": "Pinning research report to Filecoin..."})
         pin = await asyncio.to_thread(filecoin_client.pin_report, {
             "goal": goal, "narration": narration,
             "identities": self.all_identities, "elapsed_sec": elapsed,
         })
         self.on_update({"type": "filecoin_pin", **pin})
+
+        # Pin audio briefing to Filecoin separately
+        if call_audio_bytes:
+            audio_pin = await asyncio.to_thread(filecoin_client.pin_audio, call_audio_bytes, "call_script")
+            self.on_update({"type": "filecoin_audio_pin", **audio_pin})
 
         self.on_update({"type": "complete", "elapsed_sec": elapsed, "narration": narration})
         return result

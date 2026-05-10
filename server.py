@@ -12,6 +12,7 @@ load_dotenv()
 
 from orchestrator import AVAOrchestrator
 import elevenlabs_client
+from fastapi import UploadFile, File
 
 app = FastAPI(title="SCOUT — AI Sales Intelligence")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -108,6 +109,17 @@ async def convai_start():
     return {"status": "ready", **result}
 
 
+@app.post("/stt")
+async def speech_to_text(file: UploadFile = File(...)):
+    """Transcribe audio using ElevenLabs Speech-to-Text (scribe_v1)."""
+    try:
+        audio_bytes = await file.read()
+        text = elevenlabs_client.speech_to_text(audio_bytes, file.filename or "audio.webm")
+        return {"text": text}
+    except Exception as e:
+        return {"text": "", "error": str(e)}
+
+
 async def _start_autonomous():
     global autonomous_task
     from watcher import watch_queue
@@ -195,8 +207,15 @@ async def _run_demo():
         {"type": "filecoin_pin", "status": "simulated",
          "cid": "bafybeif7k2d3m7n8p9q1r2s3t4u5v6w7x8y9z0a1b2c3d4e5f6g7h8i9j0k1l2",
          "gateway_url": "https://dweb.link/ipfs/bafybeif7k2d3m7n8p9q1r2s3t4u5v6w7x8y9z0a1b2c3d4e5f6g7h8i9j0k1l2",
+         "identities_cid": "bafybeig8a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+         "identities_gateway_url": "https://dweb.link/ipfs/bafybeig8a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
          "network": "filecoin-mainnet",
+         "pdp_scan_url": "https://pdp.vxb.ai",
          "note": "Set FILECOIN_PRIVATE_KEY + install filecoin-pin CLI to pin for real"},
+        {"type": "filecoin_audio_pin", "status": "simulated", "label": "call_script",
+         "cid": "bafybeih9z8y7x6w5v4u3t2s1r0q9p8o7n6m5l4k3j2i1h0g9f8e7d6c5b4a3",
+         "gateway_url": "https://dweb.link/ipfs/bafybeih9z8y7x6w5v4u3t2s1r0q9p8o7n6m5l4k3j2i1h0g9f8e7d6c5b4a3",
+         "network": "filecoin-mainnet"},
         {"type": "complete", "elapsed_sec": 42},
     ]
     for event in events:

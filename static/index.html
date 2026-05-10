@@ -345,7 +345,7 @@ nav{display:flex;gap:4px;margin-left:20px}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Launch Scout
           </button>
-          <button class="btn btn-voice" id="voiceBtn" onclick="toggleVoice()">
+          <button class="btn btn-voice" id="voiceBtn" onclick="toggleVoice()" title="ElevenLabs Speech-to-Text — speak your research goal">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
             Voice
           </button>
@@ -509,16 +509,33 @@ nav{display:flex;gap:4px;margin-left:20px}
     <div id="filecoinSection" style="display:none" class="page-grid-full">
       <div class="section-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Filecoin — Research Report Stored
+        Filecoin — Research Stored On-Chain
       </div>
-      <div class="call-card" style="margin-top:0">
-        <div class="card-label">Decentralised Persistent Storage · Daily PDP Proofs</div>
-        <div style="margin-top:12px;font-size:13px;color:var(--text2);line-height:2">
-          <div><span style="color:var(--text3);font-size:11px;font-weight:600">STATUS</span>&nbsp;&nbsp;<span id="fcStatus" style="font-weight:700"></span></div>
-          <div><span style="color:var(--text3);font-size:11px;font-weight:600">CID</span>&nbsp;&nbsp;<code id="fcCid" style="font-size:11px;word-break:break-all;color:var(--accent)"></code></div>
-          <div><span style="color:var(--text3);font-size:11px;font-weight:600">NETWORK</span>&nbsp;&nbsp;<span id="fcNetwork"></span></div>
-          <div style="margin-top:8px"><a id="fcLink" href="#" target="_blank" style="color:var(--accent);font-size:12px;font-weight:600;text-decoration:none">🔗 View on IPFS Gateway →</a></div>
-          <div style="margin-top:4px;font-size:11px;color:var(--text3)" id="fcNote"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:0">
+        <div class="call-card">
+          <div class="card-label">📄 Research Report</div>
+          <div style="margin-top:10px;font-size:13px;color:var(--text2);line-height:2">
+            <div><span style="color:var(--text3);font-size:11px;font-weight:600">STATUS</span>&nbsp;&nbsp;<span id="fcStatus" style="font-weight:700"></span></div>
+            <div><span style="color:var(--text3);font-size:11px;font-weight:600">CID</span>&nbsp;&nbsp;<code id="fcCid" style="font-size:11px;word-break:break-all;color:var(--accent)"></code></div>
+            <div><span style="color:var(--text3);font-size:11px;font-weight:600">NETWORK</span>&nbsp;&nbsp;<span id="fcNetwork"></span></div>
+            <div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap">
+              <a id="fcLink" href="#" target="_blank" style="color:var(--accent);font-size:12px;font-weight:600;text-decoration:none">🔗 IPFS Gateway →</a>
+              <a id="fcPdpLink" href="#" target="_blank" style="color:#10b981;font-size:12px;font-weight:600;text-decoration:none">🛡 Verify PDP Proofs →</a>
+            </div>
+            <div style="margin-top:4px;font-size:11px;color:var(--text3)" id="fcNote"></div>
+          </div>
+        </div>
+        <div class="call-card">
+          <div class="card-label">🪪 Agent Identities Archive</div>
+          <div style="margin-top:10px;font-size:13px;color:var(--text2);line-height:2">
+            <div><span style="color:var(--text3);font-size:11px;font-weight:600">CID</span>&nbsp;&nbsp;<code id="fcIdCid" style="font-size:11px;word-break:break-all;color:var(--accent)">—</code></div>
+            <div style="margin-top:8px"><a id="fcIdLink" href="#" target="_blank" style="color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;display:none">🔗 View Identities on IPFS →</a></div>
+          </div>
+          <div class="card-label" style="margin-top:14px">🎙 Audio Briefing</div>
+          <div style="margin-top:6px;font-size:13px;color:var(--text2);line-height:2">
+            <div><span style="color:var(--text3);font-size:11px;font-weight:600">CID</span>&nbsp;&nbsp;<code id="fcAudioCid" style="font-size:11px;word-break:break-all;color:var(--accent)">—</code></div>
+            <div style="margin-top:6px"><a id="fcAudioLink" href="#" target="_blank" style="color:var(--accent);font-size:12px;font-weight:600;text-decoration:none;display:none">🔗 Retrieve Audio from IPFS →</a></div>
+          </div>
         </div>
       </div>
     </div>
@@ -611,6 +628,8 @@ function handleMessage(msg) {
   else if (t === 'call_audio')       { loadCallAudio(msg.b64); notify('briefing'); }
   else if (t === 'audio')            { loadAudio(msg.b64); notify('briefing'); }
   else if (t === 'filecoin_pin')     { showFilecoinPin(msg); addLog(`Filecoin: ${msg.status} — ${(msg.cid||'').slice(0,16)}...`, 'complete'); }
+  else if (t === 'filecoin_audio_pin') { showFilecoinAudioPin(msg); }
+  else if (t === 'sound_effect')     { playSound(msg.b64); }
   else if (t === 'storyboard_frame') { addStoryboardFrame(msg.b64, msg.index, msg.prompt); notify('briefing'); }
   else if (t === 'screenshot')       { addScreenshot(msg.b64, msg.index); const k = Object.keys(agents)[msg.index]; if(k) updateAgentScreenshot(k, msg.b64); }
   else if (t === 'complete')         { setRunning(false); addLog(`Done in ${msg.elapsed_sec}s`, 'complete'); }
@@ -1168,22 +1187,35 @@ function clearAgents() {
     </div>`;
 }
 
+// ElevenLabs Speech-to-Text voice input
+let _mediaRecorder = null;
 function toggleVoice() {
   const btn = document.getElementById('voiceBtn');
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    addLog('Voice requires Chrome', 'error'); return;
+  if (_mediaRecorder && _mediaRecorder.state === 'recording') {
+    _mediaRecorder.stop(); return;
   }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const r = new SR();
-  r.lang = 'en-US'; r.interimResults = false;
-  btn.classList.add('recording');
-  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Listening...`;
-  r.start();
-  r.onresult = e => { document.getElementById('goalInput').value = e.results[0][0].transcript; };
-  r.onend = () => {
-    btn.classList.remove('recording');
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Voice`;
-  };
+  if (!navigator.mediaDevices) { addLog('Microphone not available', 'error'); return; }
+  navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+    const chunks = [];
+    _mediaRecorder = new MediaRecorder(stream);
+    btn.classList.add('recording');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Listening...`;
+    _mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    _mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      btn.classList.remove('recording');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Voice`;
+      const blob = new Blob(chunks, {type: 'audio/webm'});
+      const fd = new FormData(); fd.append('file', blob, 'audio.webm');
+      try {
+        const res = await fetch('/stt', {method: 'POST', body: fd});
+        const data = await res.json();
+        if (data.text) { document.getElementById('goalInput').value = data.text; addLog('STT: ' + data.text.slice(0,60), 'status'); }
+        else { addLog('STT: no transcript (set ELEVENLABS_API_KEY)', 'error'); }
+      } catch(e) { addLog('STT error: ' + e.message, 'error'); }
+    };
+    _mediaRecorder.start();
+  }).catch(() => addLog('Microphone permission denied', 'error'));
 }
 
 // ElevenLabs Conversational AI
@@ -1212,7 +1244,15 @@ async function startConvAI() {
   }
 }
 
-// Filecoin pin result
+// ElevenLabs sound effect on completion
+function playSound(b64) {
+  try {
+    const audio = new Audio('data:audio/mp3;base64,' + b64);
+    audio.volume = 0.4; audio.play();
+  } catch(e) {}
+}
+
+// Filecoin pin results
 function showFilecoinPin(msg) {
   document.getElementById('filecoinSection').style.display = 'block';
   document.getElementById('fcStatus').textContent = msg.status === 'pinned' ? '✅ Pinned' : msg.status === 'simulated' ? '🔵 Simulated' : '❌ ' + msg.status;
@@ -1220,8 +1260,20 @@ function showFilecoinPin(msg) {
   document.getElementById('fcNetwork').textContent = msg.network || '—';
   document.getElementById('fcNote').textContent = msg.note || '';
   const a = document.getElementById('fcLink');
+  if (msg.gateway_url) { a.href = msg.gateway_url; a.style.display = 'inline'; } else { a.style.display = 'none'; }
+  const pdp = document.getElementById('fcPdpLink');
+  if (msg.pdp_scan_url) { pdp.href = msg.pdp_scan_url; pdp.style.display = 'inline'; } else { pdp.style.display = 'none'; }
+  if (msg.identities_cid) {
+    document.getElementById('fcIdCid').textContent = msg.identities_cid;
+    const idLink = document.getElementById('fcIdLink');
+    idLink.href = msg.identities_gateway_url || '#'; idLink.style.display = 'inline';
+  }
+}
+
+function showFilecoinAudioPin(msg) {
+  document.getElementById('fcAudioCid').textContent = msg.cid || '—';
+  const a = document.getElementById('fcAudioLink');
   if (msg.gateway_url) { a.href = msg.gateway_url; a.style.display = 'inline'; }
-  else { a.style.display = 'none'; }
 }
 </script>
 </body>

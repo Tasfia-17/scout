@@ -1,5 +1,5 @@
 """
-ElevenLabs client — TTS voice briefings + Conversational AI.
+ElevenLabs client — TTS, Conversational AI, Sound Effects, Speech-to-Text.
 """
 import os, requests
 
@@ -22,6 +22,45 @@ def tts(text: str) -> bytes:
     )
     r.raise_for_status()
     return r.content
+
+
+def sound_effect(description: str, duration_seconds: float = 2.0) -> bytes:
+    """
+    Generate a short sound effect via ElevenLabs Sound Effects API.
+    Returns MP3 bytes. Example: description="subtle tech chime, intel received"
+    """
+    if not API_KEY:
+        raise RuntimeError("ELEVENLABS_API_KEY not set")
+    r = requests.post(
+        f"{BASE_URL}/sound-generation",
+        headers=HEADERS,
+        json={
+            "text": description,
+            "duration_seconds": duration_seconds,
+            "prompt_influence": 0.3,
+        },
+        timeout=30,
+    )
+    r.raise_for_status()
+    return r.content
+
+
+def speech_to_text(audio_bytes: bytes, filename: str = "audio.webm") -> str:
+    """
+    Transcribe audio using ElevenLabs Speech-to-Text (scribe_v1).
+    Returns transcript string.
+    """
+    if not API_KEY:
+        raise RuntimeError("ELEVENLABS_API_KEY not set")
+    r = requests.post(
+        f"{BASE_URL}/speech-to-text",
+        headers={"xi-api-key": API_KEY},
+        files={"file": (filename, audio_bytes, "audio/webm")},
+        data={"model_id": "scribe_v1"},
+        timeout=30,
+    )
+    r.raise_for_status()
+    return r.json().get("text", "")
 
 
 def start_convai(system_prompt: str) -> dict:
